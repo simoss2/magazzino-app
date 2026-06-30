@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { inviaEmailNuovoOrdine } from '@/lib/email'
+import { inviaNotificaNuovoOrdine } from '@/lib/telegram'
 
 // GET /api/ordini — lista tutti gli ordini
 export async function GET(request) {
@@ -45,23 +45,11 @@ export async function POST(request) {
 
     if (error) throw error
 
-    // Recupera email magazzino dalle impostazioni
-    const { data: impostazioni } = await supabase
-      .from('impostazioni')
-      .select('chiave, valore')
-      .in('chiave', ['email_magazzino', 'email_admin'])
-
-    const emailMap = Object.fromEntries(impostazioni.map(i => [i.chiave, i.valore]))
-
-    // Invia email a Ivan
+    // Notifica Telegram a Ivan
     try {
-      await inviaEmailNuovoOrdine({
-        emailIvan: emailMap.email_magazzino,
-        ordine,
-      })
-    } catch (emailErr) {
-      console.error('Errore invio email:', emailErr)
-      // Non blocca la creazione dell'ordine
+      await inviaNotificaNuovoOrdine({ ordine })
+    } catch (tgErr) {
+      console.error('Errore notifica Telegram:', tgErr)
     }
 
     return NextResponse.json(ordine, { status: 201 })

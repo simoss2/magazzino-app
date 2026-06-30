@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { inviaEmailStatoAggiornato, inviaEmailDocumentoCaricato } from '@/lib/email'
+import { inviaNotificaPronto, inviaNotificaDocumento } from '@/lib/telegram'
 
 // PATCH /api/ordini/[id] — aggiorna stato o documenti
 export async function PATCH(request, { params }) {
@@ -35,24 +35,16 @@ export async function PATCH(request, { params }) {
       if (error) throw error
 
       // Notifica Ivan solo se il documento era assente prima
-      const { data: impostazioni } = await supabase
-        .from('impostazioni')
-        .select('chiave, valore')
-        .eq('chiave', 'email_magazzino')
+      const notifiche = []
+      if (bolla_url && !ordineAttuale?.bolla_url) notifiche.push('bolla')
+      if (distinta_url && !ordineAttuale?.distinta_url) notifiche.push('distinta')
+      if (dettagli_url && !ordineAttuale?.dettagli_url) notifiche.push('dettagli')
 
-      const emailIvan = impostazioni?.[0]?.valore
-      if (emailIvan) {
-        const notifiche = []
-        if (bolla_url && !ordineAttuale?.bolla_url) notifiche.push('bolla')
-        if (distinta_url && !ordineAttuale?.distinta_url) notifiche.push('distinta')
-        if (dettagli_url && !ordineAttuale?.dettagli_url) notifiche.push('dettagli')
-
-        for (const tipoDoc of notifiche) {
-          try {
-            await inviaEmailDocumentoCaricato({ emailIvan, ordine, tipoDoc })
-          } catch (emailErr) {
-            console.error('Errore invio email documento:', emailErr)
-          }
+      for (const tipoDoc of notifiche) {
+        try {
+          await inviaNotificaDocumento({ ordine, tipoDoc })
+        } catch (tgErr) {
+          console.error('Errore notifica Telegram documento:', tgErr)
         }
       }
 
@@ -75,18 +67,10 @@ export async function PATCH(request, { params }) {
     if (error) throw error
 
     if (stato === 'pronto_oggi') {
-      const { data: impostazioni } = await supabase
-        .from('impostazioni')
-        .select('chiave, valore')
-        .eq('chiave', 'email_admin')
-
-      const emailAdmin = impostazioni?.[0]?.valore
-      if (emailAdmin) {
-        try {
-          await inviaEmailStatoAggiornato({ emailAdmin, ordine, nuovoStato: stato })
-        } catch (emailErr) {
-          console.error('Errore invio email:', emailErr)
-        }
+      try {
+        await inviaNotificaPronto({ ordine })
+      } catch (tgErr) {
+        console.error('Errore notifica Telegram:', tgErr)
       }
     }
 
