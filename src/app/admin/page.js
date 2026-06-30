@@ -97,7 +97,16 @@ export default function AdminDashboard() {
 
 function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
   const [aperto, setAperto] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
   const stato = STATI[ordine.stato] || STATI.in_elaborazione
+
+  async function handleElimina(e) {
+    e.stopPropagation()
+    if (!confirm(`Eliminare l'ordine #${ordine.numero_ordine} di ${ordine.nome_cliente} ${ordine.cognome_cliente}? L'azione è irreversibile.`)) return
+    setEliminando(true)
+    await fetch(`/api/ordini/${ordine.id}`, { method: 'DELETE' })
+    await onAggiornato()
+  }
   const mancanti = docMancanti(ordine)
   const dataOrdine = new Date(ordine.created_at).toLocaleDateString('it-IT', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -213,6 +222,17 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
               </button>
             </div>
           )}
+
+          {/* Elimina ordine */}
+          <div className="pt-1 border-t border-red-100">
+            <button
+              onClick={handleElimina}
+              disabled={eliminando}
+              className="px-3 py-1.5 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {eliminando ? 'Eliminando...' : '🗑 Elimina ordine'}
+            </button>
+          </div>
         </div>
       )}
     </div>
