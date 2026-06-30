@@ -35,6 +35,11 @@ export async function middleware(request) {
 
     const ruolo = user.user_metadata?.ruolo
 
+    // Ruolo non definito → torna al login
+    if (!ruolo) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
     // Admin prova ad accedere a magazzino o viceversa
     if (pathname.startsWith('/admin') && ruolo !== 'admin') {
       return NextResponse.redirect(new URL('/magazzino', request.url))
@@ -47,7 +52,8 @@ export async function middleware(request) {
   // Già loggato → redirect alla propria area
   if (pathname === '/login' && user) {
     const ruolo = user.user_metadata?.ruolo
-    return NextResponse.redirect(new URL(ruolo === 'admin' ? '/admin' : '/magazzino', request.url))
+    if (ruolo === 'admin') return NextResponse.redirect(new URL('/admin', request.url))
+    if (ruolo === 'magazzino') return NextResponse.redirect(new URL('/magazzino', request.url))
   }
 
   return response
