@@ -104,49 +104,6 @@ export default function ImpostazioniPage() {
     <div className="max-w-lg space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Impostazioni</h1>
 
-      {/* Email */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Email notifiche</h2>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              La tua email (riceve aggiornamenti da Ivan)
-            </label>
-            <input
-              type="email"
-              value={form.email_admin}
-              onChange={e => setForm(p => ({ ...p, email_admin: e.target.value }))}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Ivan (riceve nuovi ordini)
-            </label>
-            <input
-              type="email"
-              value={form.email_magazzino}
-              onChange={e => setForm(p => ({ ...p, email_magazzino: e.target.value }))}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        {errore && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">{errore}</div>
-        )}
-        {salvato && (
-          <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-2.5">✅ Impostazioni salvate</div>
-        )}
-
-        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors">
-          Salva impostazioni
-        </button>
-      </form>
-
       {/* Portali */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Portali di acquisto</h2>
