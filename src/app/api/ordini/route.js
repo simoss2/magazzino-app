@@ -37,9 +37,19 @@ export async function POST(request) {
 
     const supabase = createSupabaseAdminClient()
 
+    // Calcola il prossimo numero_ordine senza buchi
+    const { data: maxData } = await supabase
+      .from('ordini')
+      .select('numero_ordine')
+      .order('numero_ordine', { ascending: false })
+      .limit(1)
+      .single()
+
+    const nextNumero = (maxData?.numero_ordine || 0) + 1
+
     const { data: ordine, error } = await supabase
       .from('ordini')
-      .insert({ nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url })
+      .insert({ numero_ordine: nextNumero, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url })
       .select()
       .single()
 
