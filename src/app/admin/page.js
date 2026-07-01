@@ -97,7 +97,18 @@ export default function AdminDashboard() {
 
 function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
   const [aperto, setAperto] = useState(false)
+  const [modificando, setModificando] = useState(false)
   const [eliminando, setEliminando] = useState(false)
+  const [salvando, setSalvando] = useState(false)
+  const [formModifica, setFormModifica] = useState({
+    nome_cliente: ordine.nome_cliente,
+    cognome_cliente: ordine.cognome_cliente,
+    telefono_cliente: ordine.telefono_cliente || '',
+    portale: ordine.portale || '',
+    corriere: ordine.corriere || '',
+    materiale: ordine.materiale,
+    note: ordine.note || '',
+  })
   const stato = STATI[ordine.stato] || STATI.in_elaborazione
 
   async function handleElimina(e) {
@@ -107,6 +118,20 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
     await fetch(`/api/ordini/${ordine.id}`, { method: 'DELETE' })
     await onAggiornato()
   }
+
+  async function handleSalvaModifica(e) {
+    e.preventDefault()
+    setSalvando(true)
+    await fetch(`/api/ordini/${ordine.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formModifica),
+    })
+    await onAggiornato()
+    setSalvando(false)
+    setModificando(false)
+  }
+
   const mancanti = docMancanti(ordine)
   const dataOrdine = new Date(ordine.created_at).toLocaleDateString('it-IT', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -149,40 +174,91 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
 
       {aperto && (
         <div className="border-t border-gray-100 px-4 py-4 bg-gray-50 space-y-3">
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Materiale</p>
-              <p className="text-gray-800">{ordine.materiale}</p>
-            </div>
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Ricevuto</p>
-              <p className="text-gray-800">{dataOrdine}</p>
-            </div>
-            {ordine.telefono_cliente && (
-              <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Telefono</p>
-                <p className="text-gray-800">{ordine.telefono_cliente}</p>
+
+          {/* Dettagli / Form modifica */}
+          {modificando ? (
+            <form onSubmit={handleSalvaModifica} className="space-y-3">
+              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Modifica ordine</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Nome</label>
+                  <input className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.nome_cliente} onChange={e => setFormModifica(p => ({...p, nome_cliente: e.target.value}))} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Cognome</label>
+                  <input className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.cognome_cliente} onChange={e => setFormModifica(p => ({...p, cognome_cliente: e.target.value}))} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Telefono</label>
+                  <input className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.telefono_cliente} onChange={e => setFormModifica(p => ({...p, telefono_cliente: e.target.value}))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Portale</label>
+                  <input className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.portale} onChange={e => setFormModifica(p => ({...p, portale: e.target.value}))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Corriere</label>
+                  <input className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.corriere} onChange={e => setFormModifica(p => ({...p, corriere: e.target.value}))} />
+                </div>
               </div>
-            )}
-            {ordine.portale && (
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Portale</p>
-                <p className="text-gray-800">{ordine.portale}</p>
+                <label className="block text-xs text-gray-500 mb-1">Materiale</label>
+                <textarea className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={2} value={formModifica.materiale} onChange={e => setFormModifica(p => ({...p, materiale: e.target.value}))} required />
               </div>
-            )}
-            {ordine.corriere && (
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Corriere</p>
-                <p className="text-gray-800">{ordine.corriere}</p>
+                <label className="block text-xs text-gray-500 mb-1">Note</label>
+                <textarea className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={2} value={formModifica.note} onChange={e => setFormModifica(p => ({...p, note: e.target.value}))} />
               </div>
-            )}
-            {ordine.note && (
+              <div className="flex gap-2">
+                <button type="submit" disabled={salvando} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-lg transition-colors">
+                  {salvando ? 'Salvataggio...' : '💾 Salva'}
+                </button>
+                <button type="button" onClick={() => setModificando(false)} className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors">
+                  Annulla
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Materiale</p>
+                <p className="text-gray-800">{ordine.materiale}</p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Ricevuto</p>
+                <p className="text-gray-800">{dataOrdine}</p>
+              </div>
+              {ordine.telefono_cliente && (
+                <div>
+                  <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Telefono</p>
+                  <p className="text-gray-800">{ordine.telefono_cliente}</p>
+                </div>
+              )}
+              {ordine.portale && (
+                <div>
+                  <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Portale</p>
+                  <p className="text-gray-800">{ordine.portale}</p>
+                </div>
+              )}
+              {ordine.corriere && (
+                <div>
+                  <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Corriere</p>
+                  <p className="text-gray-800">{ordine.corriere}</p>
+                </div>
+              )}
+              {ordine.note && (
+                <div className="col-span-2">
+                  <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Note</p>
+                  <p className="text-gray-800">{ordine.note}</p>
+                </div>
+              )}
               <div className="col-span-2">
-                <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Note</p>
-                <p className="text-gray-800">{ordine.note}</p>
+                <button onClick={() => setModificando(true)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                  ✏️ Modifica dati ordine
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Documenti */}
           <div className="space-y-2">

@@ -7,9 +7,31 @@ export async function PATCH(request, { params }) {
   try {
     const { id } = params
     const body = await request.json()
-    const { stato, bolla_url, distinta_url, dettagli_url } = body
+    const { stato, bolla_url, distinta_url, dettagli_url, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note } = body
 
     const supabase = createSupabaseAdminClient()
+
+    // Aggiornamento dati anagrafici (senza notifiche)
+    if (nome_cliente !== undefined || cognome_cliente !== undefined || telefono_cliente !== undefined || portale !== undefined || corriere !== undefined || materiale !== undefined || note !== undefined) {
+      const aggiornamento = {}
+      if (nome_cliente !== undefined) aggiornamento.nome_cliente = nome_cliente
+      if (cognome_cliente !== undefined) aggiornamento.cognome_cliente = cognome_cliente
+      if (telefono_cliente !== undefined) aggiornamento.telefono_cliente = telefono_cliente
+      if (portale !== undefined) aggiornamento.portale = portale
+      if (corriere !== undefined) aggiornamento.corriere = corriere
+      if (materiale !== undefined) aggiornamento.materiale = materiale
+      if (note !== undefined) aggiornamento.note = note
+
+      const { data: ordine, error } = await supabase
+        .from('ordini')
+        .update(aggiornamento)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return NextResponse.json(ordine)
+    }
 
     // Aggiornamento documenti (senza cambio stato)
     if (bolla_url !== undefined || distinta_url !== undefined || dettagli_url !== undefined) {
