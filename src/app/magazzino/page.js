@@ -17,7 +17,7 @@ function labelStato(ordine) {
 export default function MagazzinoPage() {
   const [ordini, setOrdini] = useState([])
   const [caricamento, setCaricamento] = useState(true)
-  const [mostraSpediti, setMostraSpediti] = useState(false)
+  const [sezioneAttiva, setSezioneAttiva] = useState('in_elaborazione')
 
   const caricaOrdini = useCallback(async () => {
     const res = await fetch('/api/ordini')
@@ -45,83 +45,59 @@ export default function MagazzinoPage() {
   const ordiniPronti = ordini.filter(o => o.stato === 'pronto_oggi')
   const ordiniSpediti = ordini.filter(o => o.stato === 'spedito')
 
+  const ordiniVisibili = sezioneAttiva === 'in_elaborazione'
+    ? ordiniInPreparazione
+    : sezioneAttiva === 'pronto_oggi'
+    ? ordiniPronti
+    : ordiniSpediti
+
   return (
     <div>
-      {/* Contatori */}
+      {/* Contatori / Tab */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <StatCard label="Da preparare" valore={ordiniInPreparazione.length} color="yellow" />
-        <StatCard label="Pronti" valore={ordiniPronti.length} color="green" />
-        <StatCard label="Spediti" valore={ordiniSpediti.length} color="gray" />
+        <StatCard
+          label="Da preparare"
+          valore={ordiniInPreparazione.length}
+          color="yellow"
+          attivo={sezioneAttiva === 'in_elaborazione'}
+          onClick={() => setSezioneAttiva('in_elaborazione')}
+        />
+        <StatCard
+          label="Pronti"
+          valore={ordiniPronti.length}
+          color="green"
+          attivo={sezioneAttiva === 'pronto_oggi'}
+          onClick={() => setSezioneAttiva('pronto_oggi')}
+        />
+        <StatCard
+          label="Spediti"
+          valore={ordiniSpediti.length}
+          color="gray"
+          attivo={sezioneAttiva === 'spedito'}
+          onClick={() => setSezioneAttiva('spedito')}
+        />
       </div>
 
       {caricamento ? (
         <div className="text-center py-12 text-gray-500">Caricamento ordini...</div>
+      ) : ordiniVisibili.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
+          <p className="text-gray-400 text-sm">Nessun ordine in questa sezione</p>
+        </div>
       ) : (
-        <div className="space-y-8">
-
-          {/* Sezione: In preparazione */}
-          <div>
-            <h2 className="text-sm font-semibold text-yellow-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span>
-              In preparazione ({ordiniInPreparazione.length})
-            </h2>
-            {ordiniInPreparazione.length === 0 ? (
-              <div className="text-center py-6 bg-white rounded-2xl border border-gray-200">
-                <p className="text-gray-400 text-sm">Nessun ordine in preparazione</p>
+        <div className="space-y-4">
+          {ordiniVisibili.map(ordine => (
+            sezioneAttiva === 'spedito' ? (
+              <div key={ordine.id} className="bg-white rounded-xl border border-gray-100 p-3 flex justify-between items-center text-sm opacity-60">
+                <span className="text-gray-400 font-mono">#{ordine.numero_ordine}</span>
+                <span>{ordine.nome_cliente} {ordine.cognome_cliente}</span>
+                <span className="text-gray-400 text-xs truncate max-w-xs">{ordine.materiale}</span>
+                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Spedito</span>
               </div>
             ) : (
-              <div className="space-y-4">
-                {ordiniInPreparazione.map(ordine => (
-                  <OrdineCardIvan key={ordine.id} ordine={ordine} onAggiornaStato={aggiornaStato} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Sezione: Pronti oggi */}
-          <div>
-            <h2 className="text-sm font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
-              Pronti oggi ({ordiniPronti.length})
-            </h2>
-            {ordiniPronti.length === 0 ? (
-              <div className="text-center py-6 bg-white rounded-2xl border border-gray-200">
-                <p className="text-gray-400 text-sm">Nessun ordine pronto</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {ordiniPronti.map(ordine => (
-                  <OrdineCardIvan key={ordine.id} ordine={ordine} onAggiornaStato={aggiornaStato} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Sezione: Spediti */}
-          {ordiniSpediti.length > 0 && (
-            <div>
-              <button
-                onClick={() => setMostraSpediti(!mostraSpediti)}
-                className="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2 mb-3"
-              >
-                <span className="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>
-                Spediti ({ordiniSpediti.length}) {mostraSpediti ? '▲' : '▼'}
-              </button>
-              {mostraSpediti && (
-                <div className="space-y-2 opacity-60">
-                  {ordiniSpediti.map(ordine => (
-                    <div key={ordine.id} className="bg-white rounded-xl border border-gray-100 p-3 flex justify-between items-center text-sm">
-                      <span className="text-gray-400 font-mono">#{ordine.numero_ordine}</span>
-                      <span>{ordine.nome_cliente} {ordine.cognome_cliente}</span>
-                      <span className="text-gray-400 text-xs truncate max-w-xs">{ordine.materiale}</span>
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Spedito</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
+              <OrdineCardIvan key={ordine.id} ordine={ordine} onAggiornaStato={aggiornaStato} />
+            )
+          ))}
         </div>
       )}
     </div>
@@ -184,17 +160,17 @@ function DocRow({ label, url }) {
   )
 }
 
-function StatCard({ label, valore, color }) {
+function StatCard({ label, valore, color, attivo, onClick }) {
   const colors = {
-    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-    green: 'bg-green-50 border-green-200 text-green-700',
-    gray: 'bg-gray-50 border-gray-200 text-gray-600',
+    yellow: attivo ? 'bg-yellow-400 border-yellow-400 text-white shadow-md' : 'bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100',
+    green: attivo ? 'bg-green-500 border-green-500 text-white shadow-md' : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100',
+    gray: attivo ? 'bg-gray-500 border-gray-500 text-white shadow-md' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100',
   }
   return (
-    <div className={`rounded-xl border p-4 text-center ${colors[color]}`}>
+    <button onClick={onClick} className={`rounded-xl border p-4 text-center w-full transition-all cursor-pointer ${colors[color]}`}>
       <p className="text-3xl font-bold">{valore}</p>
       <p className="text-xs mt-1 font-medium">{label}</p>
-    </div>
+    </button>
   )
 }
 
