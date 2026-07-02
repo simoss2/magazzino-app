@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { inviaNotificaPronto, inviaNotificaDocumento } from '@/lib/telegram'
+import { inviaNotificaPronto, inviaNotificaDocumento, eliminaMessaggio } from '@/lib/telegram'
 
 // PATCH /api/ordini/[id] — aggiorna stato o documenti
 export async function PATCH(request, { params }) {
@@ -79,22 +79,42 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: 'Stato non valido' }, { status: 400 })
     }
 
+    // Legge l'ordine attuale per recuperare telegram_message_id se presente
+    const { data: ordineAttuale } = await supabase
+      .from('ordini')
+      .select('telegram_message_id')
+      .eq('id', id)
+      .single()
+
+    const aggiornamentoStato = { stato }
+
+    if (stato === 'pronto_oggi') {
+      try {
+        const { data: ordineCompleto } = await supabase.from('ordini').select('*').eq('id', id).single()
+        const msgId = await inviaNotificaPronto({ ordine: ordineCompleto })
+        aggiornamentoStato.telegram_message_id = msgId
+      } catch (tgErr) {
+        console.error('Errore notifica Telegram:', tgErr)
+      }
+    }
+
+    if (stato === 'in_elaborazione' && ordineAttuale?.telegram_message_id) {
+      try {
+        await eliminaMessaggio(process.env.TELEGRAM_CHAT_ADMIN, ordineAttuale.telegram_message_id)
+        aggiornamentoStato.telegram_message_id = null
+      } catch (tgErr) {
+        console.error('Errore eliminazione messaggio Telegram:', tgErr)
+      }
+    }
+
     const { data: ordine, error } = await supabase
       .from('ordini')
-      .update({ stato })
+      .update(aggiornamentoStato)
       .eq('id', id)
       .select()
       .single()
 
     if (error) throw error
-
-    if (stato === 'pronto_oggi') {
-      try {
-        await inviaNotificaPronto({ ordine })
-      } catch (tgErr) {
-        console.error('Errore notifica Telegram:', tgErr)
-      }
-    }
 
     return NextResponse.json(ordine)
   } catch (err) {

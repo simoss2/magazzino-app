@@ -12,6 +12,19 @@ async function sendMessage(chatId, text) {
     const err = await res.json()
     throw new Error(err.description || 'Errore Telegram')
   }
+  const data = await res.json()
+  return data.result.message_id
+}
+
+export async function eliminaMessaggio(chatId, messageId) {
+  if (!messageId) return
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, message_id: messageId }),
+    })
+  } catch {}
 }
 
 // Notifica a Ivan: nuovo ordine da preparare
@@ -36,9 +49,10 @@ export async function inviaNotificaDocumento({ ordine, tipoDoc }) {
   await sendMessage(CHAT_MAGAZZINO, testo)
 }
 
-// Notifica a Simo: Ivan ha segnato pronto
+// Notifica a Simo: Ivan ha segnato pronto — restituisce il message_id
 export async function inviaNotificaPronto({ ordine }) {
   const { numero_ordine, nome_cliente, cognome_cliente, materiale } = ordine
   const testo = `✅ <b>Ordine #${numero_ordine} pronto!</b>\n\n👤 ${nome_cliente} ${cognome_cliente}\n📋 ${materiale}\n\nIvan ha completato la preparazione.`
-  await sendMessage(CHAT_ADMIN, testo)
+  const messageId = await sendMessage(CHAT_ADMIN, testo)
+  return messageId
 }
