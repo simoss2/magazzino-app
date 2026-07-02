@@ -3,6 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
+const TIPI_PRODOTTO = ['Box doccia', 'Walk-in', 'Piatto doccia', 'Altro']
+
+function prodottiToMateriale(prodotti) {
+  return prodotti
+    .filter(p => p.descrizione.trim())
+    .map(p => `${p.quantita}x ${p.tipo} — ${p.descrizione.trim()}`)
+    .join('\n')
+}
+
 export default function NuovoOrdinePage() {
   const router = useRouter()
   const [form, setForm] = useState({
@@ -11,9 +20,11 @@ export default function NuovoOrdinePage() {
     telefono_cliente: '',
     portale: '',
     corriere: '',
-    materiale: '',
     note: '',
   })
+  const [prodotti, setProdotti] = useState([
+    { id: 1, quantita: 1, tipo: 'Box doccia', descrizione: '' }
+  ])
   const [portali, setPortali] = useState([])
   const [corrieri, setCorrieri] = useState([])
   const [fileBolla, setFileBolla] = useState(null)
@@ -36,6 +47,18 @@ export default function NuovoOrdinePage() {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  function aggiornaProdotto(id, campo, valore) {
+    setProdotti(prev => prev.map(p => p.id === id ? { ...p, [campo]: valore } : p))
+  }
+
+  function aggiungiProdotto() {
+    setProdotti(prev => [...prev, { id: Date.now(), quantita: 1, tipo: 'Box doccia', descrizione: '' }])
+  }
+
+  function rimuoviProdotto(id) {
+    setProdotti(prev => prev.filter(p => p.id !== id))
+  }
+
   async function uploadPDF(file, tipo) {
     if (!file) return null
     const fd = new FormData()
@@ -50,6 +73,13 @@ export default function NuovoOrdinePage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setErrore('')
+
+    const materiale = prodottiToMateriale(prodotti)
+    if (!materiale) {
+      setErrore('Aggiungi almeno un prodotto con descrizione')
+      return
+    }
+
     setCaricamento(true)
 
     try {
@@ -64,6 +94,7 @@ export default function NuovoOrdinePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          materiale,
           bolla_url: bollaUrl,
           distinta_url: distinataUrl,
           dettagli_url: dettagliUrl,
@@ -158,32 +189,76 @@ export default function NuovoOrdinePage() {
           </div>
         </div>
 
-        {/* Materiale */}
+        {/* Prodotti */}
         <div>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Prodotto</h2>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Materiale ordinato *</label>
-            <textarea
-              name="materiale"
-              value={form.materiale}
-              onChange={handleChange}
-              required
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="Es: Box doccia 80x120 cm vetro trasparente + piatto doccia antracite 80x120"
-            />
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Prodotti *</h2>
+          <div className="space-y-3">
+            {prodotti.map((p, i) => (
+              <div key={p.id} className="flex gap-2 items-start">
+                <div className="flex flex-col items-center">
+                  <label className="text-xs text-gray-500 mb-1">Qtà</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={p.quantita}
+                    onChange={e => aggiornaProdotto(p.id, 'quantita', parseInt(e.target.value) || 1)}
+                    className="w-14 px-2 py-2 border border-gray-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs text-gray-500 mb-1">Tipo</label>
+                  <select
+                    value={p.tipo}
+                    onChange={e => aggiornaProdotto(p.id, 'tipo', e.target.value)}
+                    className="px-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    {TIPI_PRODOTTO.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1 flex flex-col">
+                  <label className="text-xs text-gray-500 mb-1">Descrizione (misure, colore, ecc.)</label>
+                  <input
+                    type="text"
+                    value={p.descrizione}
+                    onChange={e => aggiornaProdotto(p.id, 'descrizione', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="es. 80x120 vetro trasparente 6mm"
+                  />
+                </div>
+                {prodotti.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => rimuoviProdotto(p.id)}
+                    className="mt-5 text-red-400 hover:text-red-600 text-lg leading-none"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-          <div className="mt-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Note aggiuntive</label>
-            <textarea
-              name="note"
-              value={form.note}
-              onChange={handleChange}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="Istruzioni particolari, riferimenti ordine Adeo, ecc."
-            />
-          </div>
+          <button
+            type="button"
+            onClick={aggiungiProdotto}
+            className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            + Aggiungi prodotto
+          </button>
+        </div>
+
+        {/* Note */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Note aggiuntive</label>
+          <textarea
+            name="note"
+            value={form.note}
+            onChange={handleChange}
+            rows={2}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            placeholder="Istruzioni particolari, riferimenti ordine Adeo, ecc."
+          />
         </div>
 
         {/* Documenti */}

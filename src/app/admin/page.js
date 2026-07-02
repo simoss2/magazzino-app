@@ -2,6 +2,24 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
+const TIPI_PRODOTTO = ['Box doccia', 'Walk-in', 'Piatto doccia', 'Altro']
+
+function materialeToProdotti(materiale) {
+  if (!materiale) return [{ id: Date.now(), quantita: 1, tipo: 'Box doccia', descrizione: '' }]
+  return materiale.split('\n').map((riga, i) => {
+    const match = riga.match(/^(\d+)x ([^—]+) — (.+)$/)
+    if (match) return { id: i, quantita: parseInt(match[1]), tipo: match[2].trim(), descrizione: match[3].trim() }
+    return { id: i, quantita: 1, tipo: 'Altro', descrizione: riga }
+  })
+}
+
+function prodottiToMateriale(prodotti) {
+  return prodotti
+    .filter(p => p.descrizione.trim())
+    .map(p => `${p.quantita}x ${p.tipo} — ${p.descrizione.trim()}`)
+    .join('\n')
+}
+
 const STATI = {
   in_elaborazione: { label: 'In preparazione', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
   pronto_oggi:     { label: 'Pronto oggi',      color: 'bg-green-100 text-green-800 border-green-200' },
@@ -106,9 +124,9 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
     telefono_cliente: ordine.telefono_cliente || '',
     portale: ordine.portale || '',
     corriere: ordine.corriere || '',
-    materiale: ordine.materiale,
     note: ordine.note || '',
   })
+  const [prodottiModifica, setProdottiModifica] = useState(() => materialeToProdotti(ordine.materiale))
   const stato = STATI[ordine.stato] || STATI.in_elaborazione
 
   async function handleElimina(e) {
@@ -122,14 +140,19 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
   async function handleSalvaModifica(e) {
     e.preventDefault()
     setSalvando(true)
+    const materiale = prodottiToMateriale(prodottiModifica)
     await fetch(`/api/ordini/${ordine.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formModifica),
+      body: JSON.stringify({ ...formModifica, materiale }),
     })
     await onAggiornato()
     setSalvando(false)
     setModificando(false)
+  }
+
+  function aggiornaProdottoModifica(id, campo, valore) {
+    setProdottiModifica(prev => prev.map(p => p.id === id ? { ...p, [campo]: valore } : p))
   }
 
   const mancanti = docMancanti(ordine)
@@ -202,8 +225,22 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Materiale</label>
-                <textarea className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={2} value={formModifica.materiale} onChange={e => setFormModifica(p => ({...p, materiale: e.target.value}))} required />
+                <label className="block text-xs text-gray-500 mb-1">Prodotti</label>
+                <div className="space-y-2">
+                  {prodottiModifica.map(p => (
+                    <div key={p.id} className="flex gap-2 items-center">
+                      <input type="number" min="1" value={p.quantita} onChange={e => aggiornaProdottoModifica(p.id, 'quantita', parseInt(e.target.value) || 1)} className="w-12 px-1 py-1.5 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <select value={p.tipo} onChange={e => aggiornaProdottoModifica(p.id, 'tipo', e.target.value)} className="px-1 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        {TIPI_PRODOTTO.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                      <input type="text" value={p.descrizione} onChange={e => aggiornaProdottoModifica(p.id, 'descrizione', e.target.value)} placeholder="es. 80x120 vetro 6mm" className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      {prodottiModifica.length > 1 && (
+                        <button type="button" onClick={() => setProdottiModifica(prev => prev.filter(x => x.id !== p.id))} className="text-red-400 hover:text-red-600">✕</button>
+                      )}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setProdottiModifica(prev => [...prev, { id: Date.now(), quantita: 1, tipo: 'Box doccia', descrizione: '' }])} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Aggiungi prodotto</button>
+                </div>
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Note</label>
