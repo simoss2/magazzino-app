@@ -257,9 +257,13 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
             </form>
           ) : (
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Materiale</p>
-                <p className="text-gray-800">{ordine.materiale}</p>
+              <div className="col-span-2">
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Prodotti</p>
+                <div className="space-y-1">
+                  {ordine.materiale.split('\n').filter(Boolean).map((riga, i) => (
+                    <p key={i} className="text-gray-800 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm">{riga}</p>
+                  ))}
+                </div>
               </div>
               <div>
                 <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Ricevuto</p>

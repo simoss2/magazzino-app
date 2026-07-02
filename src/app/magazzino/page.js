@@ -228,7 +228,11 @@ function OrdineCardIvan({ ordine, onAggiornaStato }) {
 
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">Materiale da preparare</p>
-          <p className="text-gray-800 font-medium">{ordine.materiale}</p>
+          <div className="space-y-1 mt-1">
+            {ordine.materiale.split('\n').filter(Boolean).map((riga, i) => (
+              <p key={i} className="text-gray-800 font-medium bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">{riga}</p>
+            ))}
+          </div>
         </div>
 
         {ordine.note && (
