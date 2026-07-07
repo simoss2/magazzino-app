@@ -34,6 +34,21 @@ function labelStato(ordine) {
 
 const DOC_LABELS = { bolla: 'Bolla', distinta: 'Distinta', dettagli: 'Dettagli' }
 
+function normalizzaTelefono(tel) {
+  let n = tel.replace(/[\s\-\(\)\+]/g, '')
+  if (n.startsWith('0039')) n = n.slice(2)
+  else if (n.startsWith('39') && n.length >= 11) {}
+  else if (n.startsWith('3') && n.length === 10) n = '39' + n
+  return n
+}
+
+function buildMessaggioWhatsApp(ordine) {
+  const { nome_cliente, cognome_cliente, materiale, portale } = ordine
+  const prodotti = materiale.split('\n').filter(Boolean).map(r => '- ' + r).join('\n')
+  const portaleLinea = portale ? `sul portale ${portale}` : 'tramite il nostro canale di vendita'
+  return `Gentile ${nome_cliente} ${cognome_cliente},\n\nLa contatto a nome di Doccia Store.\n\nIn riferimento al Suo ordine effettuato ${portaleLinea}, Le comunichiamo che abbiamo preso in carico i seguenti articoli:\n${prodotti}\n\nLa ringraziamo per aver scelto Doccia Store e per la fiducia che ha riposto in noi.\n\nAl fine di poterLe inviare il tracciamento della spedizione, Le chiediamo gentilmente di fornirci il Suo indirizzo email.\n\nRestiamo a Sua completa disposizione per qualsiasi ulteriore informazione.\n\nCordiali saluti,\nSimone\nDoccia Store`
+}
+
 function docMancanti(ordine) {
   const mancanti = []
   if (!ordine.bolla_url) mancanti.push('bolla')
@@ -272,7 +287,17 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
               {ordine.telefono_cliente && (
                 <div>
                   <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Telefono</p>
-                  <p className="text-gray-800">{ordine.telefono_cliente}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-gray-800">{ordine.telefono_cliente}</p>
+                    <a
+                      href={`https://wa.me/${normalizzaTelefono(ordine.telefono_cliente)}?text=${encodeURIComponent(buildMessaggioWhatsApp(ordine))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors"
+                    >
+                      💬 Invia su WhatsApp
+                    </a>
+                  </div>
                 </div>
               )}
               {ordine.portale && (
