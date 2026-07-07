@@ -290,9 +290,7 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-gray-800">{ordine.telefono_cliente}</p>
                     <a
-                      href={`https://wa.me/${normalizzaTelefono(ordine.telefono_cliente)}?text=${encodeURIComponent(buildMessaggioWhatsApp(ordine))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`whatsapp://send?phone=${normalizzaTelefono(ordine.telefono_cliente)}&text=${encodeURIComponent(buildMessaggioWhatsApp(ordine))}`}
                       className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors"
                     >
                       💬 Invia su WhatsApp
