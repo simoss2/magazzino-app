@@ -55,9 +55,12 @@ export async function POST(request) {
 
     if (error) throw error
 
-    // Notifica Telegram a Ivan
+    // Notifica Telegram a Ivan — salva message_id per poterlo eliminare in seguito
     try {
-      await inviaNotificaNuovoOrdine({ ordine })
+      const ivanMsgId = await inviaNotificaNuovoOrdine({ ordine })
+      if (ivanMsgId) {
+        await supabase.from('ordini').update({ telegram_ivan_message_id: ivanMsgId }).eq('id', ordine.id)
+      }
     } catch (tgErr) {
       console.error('Errore notifica Telegram:', tgErr)
     }

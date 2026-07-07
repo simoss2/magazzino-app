@@ -27,7 +27,7 @@ export async function eliminaMessaggio(chatId, messageId) {
   } catch {}
 }
 
-// Notifica a Ivan: nuovo ordine da preparare
+// Notifica a Ivan: nuovo ordine da preparare — restituisce message_id
 export async function inviaNotificaNuovoOrdine({ ordine }) {
   const { numero_ordine, nome_cliente, cognome_cliente, materiale, note, portale, corriere } = ordine
   let testo = `📦 <b>Nuovo ordine #${numero_ordine}</b>\n\n`
@@ -37,7 +37,8 @@ export async function inviaNotificaNuovoOrdine({ ordine }) {
   if (corriere) testo += `🚚 <b>Corriere:</b> ${corriere}\n`
   if (note) testo += `📝 <b>Note:</b> ${note}\n`
   testo += `\nAccedi all'app per vedere i documenti.`
-  await sendMessage(CHAT_MAGAZZINO, testo)
+  const messageId = await sendMessage(CHAT_MAGAZZINO, testo)
+  return messageId
 }
 
 // Notifica a Ivan: documento disponibile

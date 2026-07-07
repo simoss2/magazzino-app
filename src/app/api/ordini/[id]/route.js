@@ -122,11 +122,32 @@ export async function PATCH(request, { params }) {
   }
 }
 
-// DELETE /api/ordini/[id] — elimina ordine
+// DELETE /api/ordini/[id] — elimina ordine e messaggi Telegram collegati
 export async function DELETE(request, { params }) {
   try {
     const { id } = params
     const supabase = createSupabaseAdminClient()
+
+    // Legge i message_id prima di eliminare
+    const { data: ordine } = await supabase
+      .from('ordini')
+      .select('telegram_ivan_message_id, telegram_message_id')
+      .eq('id', id)
+      .single()
+
+    // Elimina messaggio a Ivan (notifica nuovo ordine)
+    if (ordine?.telegram_ivan_message_id) {
+      try {
+        await eliminaMessaggio(process.env.TELEGRAM_CHAT_MAGAZZINO, ordine.telegram_ivan_message_id)
+      } catch {}
+    }
+
+    // Elimina eventuale messaggio a Simo (notifica pronto)
+    if (ordine?.telegram_message_id) {
+      try {
+        await eliminaMessaggio(process.env.TELEGRAM_CHAT_ADMIN, ordine.telegram_message_id)
+      } catch {}
+    }
 
     const { error } = await supabase.from('ordini').delete().eq('id', id)
     if (error) throw error
