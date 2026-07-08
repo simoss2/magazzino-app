@@ -40,7 +40,10 @@ export default function MagazzinoPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stato, giorni_attesa }),
     })
-    if (res.ok) await caricaOrdini()
+    if (res.ok) {
+      await caricaOrdini()
+      setSezioneAttiva(stato)
+    }
   }
 
   const ordiniInPreparazione = ordini.filter(o => o.stato === 'in_elaborazione')
