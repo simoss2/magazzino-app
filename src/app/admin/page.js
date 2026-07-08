@@ -62,6 +62,7 @@ export default function AdminDashboard() {
   const [caricamento, setCaricamento] = useState(true)
   const [filtroStato, setFiltroStato] = useState('tutti')
   const [aggiornamento, setAggiornamento] = useState(null)
+  const [ricerca, setRicerca] = useState('')
 
   const caricaOrdini = useCallback(async () => {
     const url = filtroStato === 'tutti' ? '/api/ordini' : `/api/ordini?stato=${filtroStato}`
@@ -84,9 +85,15 @@ export default function AdminDashboard() {
     setAggiornamento(null)
   }
 
+  const ordiniFiltrati = ordini.filter(o => {
+    const q = ricerca.trim().toLowerCase()
+    if (!q) return true
+    return `${o.nome_cliente} ${o.cognome_cliente}`.toLowerCase().includes(q)
+  })
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Ordini</h1>
         <div className="flex gap-2 flex-wrap">
           {['tutti', 'in_elaborazione', 'pronto_oggi', 'spedito'].map(s => (
@@ -105,15 +112,29 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      <div className="relative mb-5">
+        <input
+          type="text"
+          value={ricerca}
+          onChange={e => setRicerca(e.target.value)}
+          placeholder="Cerca per nome o cognome..."
+          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+        />
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+        {ricerca && (
+          <button onClick={() => setRicerca('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+        )}
+      </div>
+
       {caricamento ? (
         <div className="text-center py-12 text-gray-500">Caricamento...</div>
-      ) : ordini.length === 0 ? (
+      ) : ordiniFiltrati.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
-          <p className="text-gray-400 text-lg">Nessun ordine trovato</p>
+          <p className="text-gray-400 text-lg">{ricerca ? `Nessun risultato per "${ricerca}"` : 'Nessun ordine trovato'}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {ordini.map(ordine => (
+          {ordiniFiltrati.map(ordine => (
             <OrdineCard
               key={ordine.id}
               ordine={ordine}
