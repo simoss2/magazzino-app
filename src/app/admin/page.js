@@ -23,6 +23,7 @@ function prodottiToMateriale(prodotti) {
 const STATI = {
   in_elaborazione: { label: 'In preparazione', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
   pronto_oggi:     { label: 'Pronto oggi',      color: 'bg-green-100 text-green-800 border-green-200' },
+  bollettato:      { label: 'Bollettato',       color: 'bg-blue-100 text-blue-800 border-blue-200' },
   spedito:         { label: 'Spedito',          color: 'bg-gray-100 text-gray-600 border-gray-200' },
 }
 
@@ -96,7 +97,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Ordini</h1>
         <div className="flex gap-2 flex-wrap">
-          {['tutti', 'in_elaborazione', 'pronto_oggi', 'spedito'].map(s => (
+          {['tutti', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito'].map(s => (
             <button
               key={s}
               onClick={() => { setFiltroStato(s); setCaricamento(true) }}
@@ -372,7 +373,7 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
           </div>
 
           {/* Azione spedito */}
-          {(ordine.stato === 'pronto_oggi' || ordine.stato === 'pronto_tra_giorni') && (
+          {(ordine.stato === 'pronto_oggi' || ordine.stato === 'bollettato' || ordine.stato === 'pronto_tra_giorni') && (
             <div className="pt-1">
               <button
                 onClick={() => onSegnaSpedito(ordine.id)}

@@ -74,7 +74,7 @@ export async function PATCH(request, { params }) {
     }
 
     // Aggiornamento stato
-    const statiValidi = ['in_elaborazione', 'pronto_oggi', 'spedito']
+    const statiValidi = ['in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito']
     if (!statiValidi.includes(stato)) {
       return NextResponse.json({ error: 'Stato non valido' }, { status: 400 })
     }

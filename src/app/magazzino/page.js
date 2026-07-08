@@ -5,11 +5,13 @@ import { useState, useEffect, useCallback } from 'react'
 const BADGE = {
   in_elaborazione: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   pronto_oggi: 'bg-green-100 text-green-800 border-green-200',
+  bollettato: 'bg-blue-100 text-blue-800 border-blue-200',
   spedito: 'bg-gray-100 text-gray-600 border-gray-200',
 }
 
 function labelStato(ordine) {
   if (ordine.stato === 'pronto_oggi') return 'Pronto oggi'
+  if (ordine.stato === 'bollettato') return 'Bollettato'
   if (ordine.stato === 'spedito') return 'Spedito'
   return 'In preparazione'
 }
@@ -43,18 +45,21 @@ export default function MagazzinoPage() {
 
   const ordiniInPreparazione = ordini.filter(o => o.stato === 'in_elaborazione')
   const ordiniPronti = ordini.filter(o => o.stato === 'pronto_oggi')
+  const ordiniBollettati = ordini.filter(o => o.stato === 'bollettato')
   const ordiniSpediti = ordini.filter(o => o.stato === 'spedito')
 
   const ordiniVisibili = sezioneAttiva === 'in_elaborazione'
     ? ordiniInPreparazione
     : sezioneAttiva === 'pronto_oggi'
     ? ordiniPronti
+    : sezioneAttiva === 'bollettato'
+    ? ordiniBollettati
     : ordiniSpediti
 
   return (
     <div>
       {/* Contatori / Tab */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-4 gap-2 mb-6">
         <StatCard
           label="Da preparare"
           valore={ordiniInPreparazione.length}
@@ -68,6 +73,13 @@ export default function MagazzinoPage() {
           color="green"
           attivo={sezioneAttiva === 'pronto_oggi'}
           onClick={() => setSezioneAttiva('pronto_oggi')}
+        />
+        <StatCard
+          label="Bollettati"
+          valore={ordiniBollettati.length}
+          color="blue"
+          attivo={sezioneAttiva === 'bollettato'}
+          onClick={() => setSezioneAttiva('bollettato')}
         />
         <StatCard
           label="Spediti"
@@ -164,11 +176,12 @@ function StatCard({ label, valore, color, attivo, onClick }) {
   const colors = {
     yellow: attivo ? 'bg-yellow-400 border-yellow-400 text-white shadow-md' : 'bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100',
     green: attivo ? 'bg-green-500 border-green-500 text-white shadow-md' : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100',
+    blue: attivo ? 'bg-blue-500 border-blue-500 text-white shadow-md' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100',
     gray: attivo ? 'bg-gray-500 border-gray-500 text-white shadow-md' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100',
   }
   return (
-    <button onClick={onClick} className={`rounded-xl border p-4 text-center w-full transition-all cursor-pointer ${colors[color]}`}>
-      <p className="text-3xl font-bold">{valore}</p>
+    <button onClick={onClick} className={`rounded-xl border p-3 text-center w-full transition-all cursor-pointer ${colors[color]}`}>
+      <p className="text-2xl font-bold">{valore}</p>
       <p className="text-xs mt-1 font-medium">{label}</p>
     </button>
   )
@@ -187,14 +200,18 @@ function OrdineCardIvan({ ordine, onAggiornaStato }) {
     setAggiornamento(false)
   }
 
+  const borderColor = ordine.stato === 'pronto_oggi' ? 'border-green-300'
+    : ordine.stato === 'bollettato' ? 'border-blue-300'
+    : 'border-yellow-300'
+
+  const headerBg = ordine.stato === 'pronto_oggi' ? 'bg-green-50'
+    : ordine.stato === 'bollettato' ? 'bg-blue-50'
+    : 'bg-yellow-50'
+
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${
-      ordine.stato === 'pronto_oggi' ? 'border-green-300' : 'border-yellow-300'
-    }`}>
+    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${borderColor}`}>
       {/* Header card */}
-      <div className={`px-5 py-3 flex items-center justify-between ${
-        ordine.stato === 'pronto_oggi' ? 'bg-green-50' : 'bg-yellow-50'
-      }`}>
+      <div className={`px-5 py-3 flex items-center justify-between ${headerBg}`}>
         <div className="flex items-center gap-3">
           <span className="font-mono text-gray-400 text-sm">#{ordine.numero_ordine}</span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${BADGE[ordine.stato]}`}>
@@ -253,24 +270,42 @@ function OrdineCardIvan({ ordine, onAggiornaStato }) {
         {ordine.stato !== 'spedito' && (
           <div className="pt-2 border-t border-gray-100">
             <p className="text-xs text-gray-400 mb-3">Aggiorna stato:</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => handleStato('pronto_oggi')}
                 disabled={aggiornamento || ordine.stato === 'pronto_oggi'}
                 className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-default ${
                   ordine.stato === 'pronto_oggi'
-                    ? 'bg-green-600 text-white opacity-100'
+                    ? 'bg-green-600 text-white'
                     : 'bg-green-50 hover:bg-green-600 hover:text-white text-green-700 border border-green-200 disabled:opacity-50'
                 }`}
               >
                 {aggiornamento ? '...' : '✅ Pronto oggi'}
               </button>
+              {ordine.stato === 'pronto_oggi' && (
+                <button
+                  onClick={() => handleStato('bollettato')}
+                  disabled={aggiornamento}
+                  className="flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 border border-blue-200 disabled:opacity-50"
+                >
+                  {aggiornamento ? '...' : '📋 Bollettato'}
+                </button>
+              )}
+              {ordine.stato === 'bollettato' && (
+                <button
+                  onClick={() => handleStato('bollettato')}
+                  disabled
+                  className="flex-1 py-2.5 text-sm font-medium rounded-lg bg-blue-600 text-white cursor-default"
+                >
+                  📋 Bollettato
+                </button>
+              )}
               <button
                 onClick={() => handleStato('in_elaborazione')}
                 disabled={aggiornamento || ordine.stato === 'in_elaborazione'}
                 className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-default ${
                   ordine.stato === 'in_elaborazione'
-                    ? 'bg-yellow-400 text-white opacity-100'
+                    ? 'bg-yellow-400 text-white'
                     : 'bg-yellow-50 hover:bg-yellow-400 hover:text-white text-yellow-700 border border-yellow-200 disabled:opacity-50'
                 }`}
               >
