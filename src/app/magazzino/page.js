@@ -43,6 +43,9 @@ export default function MagazzinoPage() {
     if (res.ok) {
       await caricaOrdini()
       setSezioneAttiva(stato)
+    } else {
+      const err = await res.json().catch(() => ({}))
+      alert(`Errore aggiornamento stato: ${res.status} — ${err.error || 'sconosciuto'}`)
     }
   }
 
