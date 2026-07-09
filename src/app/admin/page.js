@@ -64,6 +64,20 @@ export default function AdminDashboard() {
   const [filtroStato, setFiltroStato] = useState('tutti')
   const [aggiornamento, setAggiornamento] = useState(null)
   const [ricerca, setRicerca] = useState('')
+  const [contatori, setContatori] = useState({ in_elaborazione: 0, pronto_oggi: 0, bollettato: 0, spedito: 0 })
+
+  const caricaContatori = useCallback(async () => {
+    const res = await fetch('/api/ordini')
+    const data = await res.json()
+    if (Array.isArray(data)) {
+      setContatori({
+        in_elaborazione: data.filter(o => o.stato === 'in_elaborazione').length,
+        pronto_oggi:     data.filter(o => o.stato === 'pronto_oggi').length,
+        bollettato:      data.filter(o => o.stato === 'bollettato').length,
+        spedito:         data.filter(o => o.stato === 'spedito').length,
+      })
+    }
+  }, [])
 
   const caricaOrdini = useCallback(async () => {
     const url = filtroStato === 'tutti' ? '/api/ordini' : `/api/ordini?stato=${filtroStato}`
@@ -71,7 +85,8 @@ export default function AdminDashboard() {
     const data = await res.json()
     setOrdini(data)
     setCaricamento(false)
-  }, [filtroStato])
+    caricaContatori()
+  }, [filtroStato, caricaContatori])
 
   useEffect(() => { caricaOrdini() }, [caricaOrdini])
 
@@ -112,13 +127,20 @@ export default function AdminDashboard() {
             <button
               key={s}
               onClick={() => { setFiltroStato(s); setCaricamento(true) }}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filtroStato === s
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
               }`}
             >
               {s === 'tutti' ? 'Tutti' : STATI[s]?.label}
+              {s !== 'tutti' && contatori[s] > 0 && (
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none ${
+                  filtroStato === s ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
+                }`}>
+                  {contatori[s]}
+                </span>
+              )}
             </button>
           ))}
         </div>
