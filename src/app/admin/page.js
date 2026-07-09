@@ -86,6 +86,17 @@ export default function AdminDashboard() {
     setAggiornamento(null)
   }
 
+  async function riportaProntoOggi(id) {
+    setAggiornamento(id)
+    await fetch(`/api/ordini/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stato: 'pronto_oggi' }),
+    })
+    await caricaOrdini()
+    setAggiornamento(null)
+  }
+
   const ordiniFiltrati = ordini.filter(o => {
     const q = ricerca.trim().toLowerCase()
     if (!q) return true
@@ -140,6 +151,7 @@ export default function AdminDashboard() {
               key={ordine.id}
               ordine={ordine}
               onSegnaSpedito={segnaSpedito}
+              onRiportaProntoOggi={riportaProntoOggi}
               aggiornamento={aggiornamento}
               onAggiornato={caricaOrdini}
             />
@@ -150,7 +162,7 @@ export default function AdminDashboard() {
   )
 }
 
-function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
+function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento, onAggiornato }) {
   const [aperto, setAperto] = useState(false)
   const [modificando, setModificando] = useState(false)
   const [eliminando, setEliminando] = useState(false)
@@ -381,6 +393,19 @@ function OrdineCard({ ordine, onSegnaSpedito, aggiornamento, onAggiornato }) {
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {aggiornamento === ordine.id ? 'Aggiornamento...' : '✅ Segna come spedito'}
+              </button>
+            </div>
+          )}
+
+          {/* Undo spedito */}
+          {ordine.stato === 'spedito' && (
+            <div className="pt-1">
+              <button
+                onClick={() => onRiportaProntoOggi(ordine.id)}
+                disabled={aggiornamento === ordine.id}
+                className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-300 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {aggiornamento === ordine.id ? 'Aggiornamento...' : '↩ Riporta a Pronto oggi'}
               </button>
             </div>
           )}
