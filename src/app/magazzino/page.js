@@ -107,6 +107,9 @@ export default function MagazzinoPage() {
                 <span className="text-gray-400 font-mono">#{ordine.numero_ordine}</span>
                 <span>{ordine.nome_cliente} {ordine.cognome_cliente}</span>
                 <span className="text-gray-400 text-xs truncate max-w-xs">{ordine.materiale}</span>
+                {ordine.data_spedizione && (
+                  <span className="text-xs text-gray-400">🚚 {new Date(ordine.data_spedizione).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                )}
                 <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Spedito</span>
               </div>
             ) : (

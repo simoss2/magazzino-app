@@ -88,6 +88,12 @@ export async function PATCH(request, { params }) {
 
     const aggiornamentoStato = { stato }
 
+    if (stato === 'spedito') {
+      aggiornamentoStato.data_spedizione = new Date().toISOString()
+    } else {
+      aggiornamentoStato.data_spedizione = null
+    }
+
     if (stato === 'pronto_oggi') {
       try {
         const { data: ordineCompleto } = await supabase.from('ordini').select('*').eq('id', id).single()

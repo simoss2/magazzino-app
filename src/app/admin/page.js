@@ -205,6 +205,9 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
   }
 
   const mancanti = docMancanti(ordine)
+  const dataSpedizione = ordine.data_spedizione
+    ? new Date(ordine.data_spedizione).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : null
   const dataOrdine = new Date(ordine.created_at).toLocaleDateString('it-IT', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
   })
@@ -240,6 +243,9 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${stato.color}`}>
             {labelStato(ordine)}
           </span>
+          {dataSpedizione && (
+            <span className="text-xs text-gray-500">🚚 {dataSpedizione}</span>
+          )}
           <span className="text-gray-400 text-sm">{aperto ? '▲' : '▼'}</span>
         </div>
       </div>
