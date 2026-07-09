@@ -205,12 +205,8 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
   }
 
   const mancanti = docMancanti(ordine)
-  const dataSpedizione = ordine.data_spedizione
-    ? new Date(ordine.data_spedizione).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    : null
-  const dataOrdine = new Date(ordine.created_at).toLocaleDateString('it-IT', {
-    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-  })
+  const fmtData = (d) => d ? new Date(d).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null
+  const dataOrdine = fmtData(ordine.created_at)
 
   return (
     <div className={`bg-white rounded-xl shadow-sm overflow-hidden border ${
@@ -243,8 +239,8 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${stato.color}`}>
             {labelStato(ordine)}
           </span>
-          {dataSpedizione && (
-            <span className="text-xs text-gray-500">🚚 {dataSpedizione}</span>
+          {ordine.data_spedizione && (
+            <span className="text-xs text-gray-500">🚚 {fmtData(ordine.data_spedizione)}</span>
           )}
           <span className="text-gray-400 text-sm">{aperto ? '▲' : '▼'}</span>
         </div>
@@ -364,6 +360,24 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
             </div>
           )}
 
+          {/* Cronologia stati */}
+          <div className="bg-white border border-gray-200 rounded-lg px-3 py-2.5">
+            <p className="text-gray-500 text-xs uppercase tracking-wide mb-2">Cronologia stati</p>
+            <div className="space-y-1">
+              {[
+                { icon: '🟡', label: 'In preparazione', data: ordine.data_in_elaborazione },
+                { icon: '🟢', label: 'Pronto oggi',     data: ordine.data_pronto_oggi },
+                { icon: '🔵', label: 'Bollettato',      data: ordine.data_bollettato },
+                { icon: '🚚', label: 'Spedito',         data: ordine.data_spedizione },
+              ].map(({ icon, label, data }) => (
+                <div key={label} className={`flex items-center justify-between text-xs ${data ? 'text-gray-700' : 'text-gray-300'}`}>
+                  <span>{icon} {label}</span>
+                  <span>{fmtData(data) ?? '—'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Documenti */}
           <div className="space-y-2">
             <p className="text-gray-500 text-xs uppercase tracking-wide">Documenti</p>
@@ -391,7 +405,7 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
           </div>
 
           {/* Azione spedito */}
-          {(ordine.stato === 'pronto_oggi' || ordine.stato === 'bollettato' || ordine.stato === 'pronto_tra_giorni') && (
+          {(ordine.stato === 'pronto_oggi' || ordine.stato === 'bollettato') && (
             <div className="pt-1">
               <button
                 onClick={() => onSegnaSpedito(ordine.id)}

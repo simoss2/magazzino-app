@@ -49,7 +49,7 @@ export async function POST(request) {
 
     const { data: ordine, error } = await supabase
       .from('ordini')
-      .insert({ numero_ordine: nextNumero, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url })
+      .insert({ numero_ordine: nextNumero, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url, data_in_elaborazione: new Date().toISOString() })
       .select()
       .single()
 

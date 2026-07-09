@@ -86,13 +86,13 @@ export async function PATCH(request, { params }) {
       .eq('id', id)
       .single()
 
+    const now = new Date().toISOString()
     const aggiornamentoStato = { stato }
 
-    if (stato === 'spedito') {
-      aggiornamentoStato.data_spedizione = new Date().toISOString()
-    } else {
-      aggiornamentoStato.data_spedizione = null
-    }
+    if (stato === 'in_elaborazione') aggiornamentoStato.data_in_elaborazione = now
+    if (stato === 'pronto_oggi') aggiornamentoStato.data_pronto_oggi = now
+    if (stato === 'bollettato') aggiornamentoStato.data_bollettato = now
+    if (stato === 'spedito') aggiornamentoStato.data_spedizione = now
 
     if (stato === 'pronto_oggi') {
       try {
