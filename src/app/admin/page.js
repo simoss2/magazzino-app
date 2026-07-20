@@ -43,16 +43,32 @@ function normalizzaTelefono(tel) {
   return n
 }
 
+const TRADUZIONI_FR = {
+  'Box doccia':    'Cabine de douche',
+  'Walk-in':       'Paroi de douche walk-in',
+  'Piatto doccia': 'Receveur de douche',
+  'Altro':         'Autre',
+}
+
+function traduciRigaFR(riga) {
+  // formato atteso: "2x Box doccia — descrizione"
+  return riga.replace(/^(\d+x )([\w\- ]+)( — )/, (_, qty, tipo, sep) => {
+    const tradotto = TRADUZIONI_FR[tipo.trim()] || tipo.trim()
+    return `${qty}${tradotto}${sep}`
+  })
+}
+
 function buildMessaggioWhatsApp(ordine) {
   const { nome_cliente, cognome_cliente, materiale, portale } = ordine
-  const prodotti = materiale.split('\n').filter(Boolean).map(r => '- ' + r).join('\n')
   const isFrancia = portale?.toLowerCase().includes('francia')
 
   if (isFrancia) {
+    const prodotti = materiale.split('\n').filter(Boolean).map(r => '- ' + traduciRigaFR(r)).join('\n')
     const portaleLinea = portale ? `sur le portail ${portale}` : 'via notre canal de vente'
     return `Cher(e) ${nome_cliente} ${cognome_cliente},\n\nJe vous contacte de la part de Doccia Store.\n\nConcernant votre commande passée ${portaleLinea}, nous vous informons que nous avons pris en charge les articles suivants :\n${prodotti}\n\nNous vous remercions d'avoir choisi Doccia Store et de la confiance que vous nous accordez.\n\nAfin de pouvoir vous envoyer le suivi de votre expédition, nous vous prions de bien vouloir nous communiquer votre adresse e-mail.\n\nNous restons à votre entière disposition pour tout renseignement complémentaire.\n\nCordialement,\nSimone\nDoccia Store`
   }
 
+  const prodotti = materiale.split('\n').filter(Boolean).map(r => '- ' + r).join('\n')
   const portaleLinea = portale ? `sul portale ${portale}` : 'tramite il nostro canale di vendita'
   return `Gentile ${nome_cliente} ${cognome_cliente},\n\nLa contatto a nome di Doccia Store.\n\nIn riferimento al Suo ordine effettuato ${portaleLinea}, Le comunichiamo che abbiamo preso in carico i seguenti articoli:\n${prodotti}\n\nLa ringraziamo per aver scelto Doccia Store e per la fiducia che ha riposto in noi.\n\nAl fine di poterLe inviare il tracciamento della spedizione, Le chiediamo gentilmente di fornirci il Suo indirizzo email.\n\nRestiamo a Sua completa disposizione per qualsiasi ulteriore informazione.\n\nCordiali saluti,\nSimone\nDoccia Store`
 }
