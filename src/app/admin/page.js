@@ -50,12 +50,24 @@ const TRADUZIONI_FR = {
   'Altro':         'Autre',
 }
 
+const COLORI_FR = {
+  'grigio': 'gris',
+  'bianco': 'blanc',
+  'creta':  'craie',
+  'nero':   'noir',
+}
+
 function traduciRigaFR(riga) {
   // formato atteso: "2x Box doccia — descrizione"
-  return riga.replace(/^(\d+x )([\w\- ]+)( — )/, (_, qty, tipo, sep) => {
+  let risultato = riga.replace(/^(\d+x )([\w\- ]+)( — )/, (_, qty, tipo, sep) => {
     const tradotto = TRADUZIONI_FR[tipo.trim()] || tipo.trim()
     return `${qty}${tradotto}${sep}`
   })
+  // traduce i colori nella descrizione (case-insensitive)
+  Object.entries(COLORI_FR).forEach(([it, fr]) => {
+    risultato = risultato.replace(new RegExp(`\\b${it}\\b`, 'gi'), fr)
+  })
+  return risultato
 }
 
 function buildMessaggioWhatsApp(ordine) {
