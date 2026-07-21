@@ -147,11 +147,13 @@ export default function AdminDashboard() {
     setAggiornamento(null)
   }
 
-  const ordiniFiltrati = ordini.filter(o => {
-    const q = ricerca.trim().toLowerCase()
-    if (!q) return true
-    return `${o.nome_cliente} ${o.cognome_cliente}`.toLowerCase().includes(q)
-  })
+  const ordiniFiltrati = ordini
+    .filter(o => {
+      const q = ricerca.trim().toLowerCase()
+      if (!q) return true
+      return `${o.nome_cliente} ${o.cognome_cliente}`.toLowerCase().includes(q)
+    })
+    .sort((a, b) => (b.priorita ? 1 : 0) - (a.priorita ? 1 : 0))
 
   return (
     <div>
@@ -224,6 +226,19 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
   const [modificando, setModificando] = useState(false)
   const [eliminando, setEliminando] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const [togglindoPriorita, setTogglindoPriorita] = useState(false)
+
+  async function handleTogglePriorita(e) {
+    e.stopPropagation()
+    setTogglindoPriorita(true)
+    await fetch(`/api/ordini/${ordine.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priorita: !ordine.priorita }),
+    })
+    await onAggiornato()
+    setTogglindoPriorita(false)
+  }
   const [formModifica, setFormModifica] = useState({
     nome_cliente: ordine.nome_cliente,
     cognome_cliente: ordine.cognome_cliente,
@@ -267,8 +282,14 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
 
   return (
     <div className={`bg-white rounded-xl shadow-sm overflow-hidden border ${
-      mancanti.length > 0 ? 'border-red-200' : 'border-gray-200'
+      ordine.priorita ? 'border-2 border-red-500' : mancanti.length > 0 ? 'border-red-200' : 'border-gray-200'
     }`}>
+      {ordine.priorita && (
+        <div className="bg-red-500 px-4 py-1.5 flex items-center gap-2">
+          <span>🚨</span>
+          <span className="text-black text-xs font-semibold tracking-wide">ORDINE PRIORITARIO</span>
+        </div>
+      )}
       <div
         className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
         onClick={() => setAperto(!aperto)}
@@ -487,8 +508,19 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
             </div>
           )}
 
-          {/* Elimina ordine */}
-          <div className="pt-1 border-t border-red-100">
+          {/* Priorità + Elimina */}
+          <div className="pt-1 border-t border-red-100 flex items-center justify-between">
+            <button
+              onClick={handleTogglePriorita}
+              disabled={togglindoPriorita}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-50 ${
+                ordine.priorita
+                  ? 'bg-red-500 text-black border-red-500 hover:bg-red-600'
+                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+              }`}
+            >
+              {togglindoPriorita ? '...' : ordine.priorita ? '🔴 Rimuovi priorità' : '🔴 Segna priorità'}
+            </button>
             <button
               onClick={handleElimina}
               disabled={eliminando}

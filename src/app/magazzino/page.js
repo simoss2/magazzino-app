@@ -51,13 +51,14 @@ export default function MagazzinoPage() {
   const ordiniBollettati = ordini.filter(o => o.stato === 'bollettato')
   const ordiniSpediti = ordini.filter(o => o.stato === 'spedito')
 
-  const ordiniVisibili = sezioneAttiva === 'in_elaborazione'
+  const ordiniVisibili = (sezioneAttiva === 'in_elaborazione'
     ? ordiniInPreparazione
     : sezioneAttiva === 'pronto_oggi'
     ? ordiniPronti
     : sezioneAttiva === 'bollettato'
     ? ordiniBollettati
     : ordiniSpediti
+  ).sort((a, b) => (b.priorita ? 1 : 0) - (a.priorita ? 1 : 0))
 
   return (
     <div>
@@ -215,7 +216,13 @@ function OrdineCardIvan({ ordine, onAggiornaStato }) {
     : 'bg-yellow-50'
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${borderColor}`}>
+    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${ordine.priorita ? 'border-2 border-red-500' : borderColor}`}>
+      {ordine.priorita && (
+        <div className="bg-red-500 px-5 py-1.5 flex items-center gap-2">
+          <span>🚨</span>
+          <span className="text-black text-xs font-semibold tracking-wide">ORDINE PRIORITARIO — da evadere subito</span>
+        </div>
+      )}
       {/* Header card */}
       <div className={`px-5 py-3 flex items-center justify-between ${headerBg}`}>
         <div className="flex items-center gap-3">

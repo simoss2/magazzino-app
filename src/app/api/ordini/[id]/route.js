@@ -7,9 +7,21 @@ export async function PATCH(request, { params }) {
   try {
     const { id } = params
     const body = await request.json()
-    const { stato, bolla_url, distinta_url, dettagli_url, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note } = body
+    const { stato, bolla_url, distinta_url, dettagli_url, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, priorita } = body
 
     const supabase = createSupabaseAdminClient()
+
+    // Aggiornamento priorità
+    if (priorita !== undefined) {
+      const { data: ordine, error } = await supabase
+        .from('ordini')
+        .update({ priorita })
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) throw error
+      return NextResponse.json(ordine)
+    }
 
     // Aggiornamento dati anagrafici (senza notifiche)
     if (nome_cliente !== undefined || cognome_cliente !== undefined || telefono_cliente !== undefined || portale !== undefined || corriere !== undefined || materiale !== undefined || note !== undefined) {
