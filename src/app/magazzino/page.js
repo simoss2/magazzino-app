@@ -103,19 +103,7 @@ export default function MagazzinoPage() {
       ) : (
         <div className="space-y-4">
           {ordiniVisibili.map(ordine => (
-            sezioneAttiva === 'spedito' ? (
-              <div key={ordine.id} className="bg-white rounded-xl border border-gray-100 p-3 flex justify-between items-center text-sm opacity-60">
-                <span className="text-gray-400 font-mono">#{ordine.numero_ordine}</span>
-                <span>{ordine.nome_cliente} {ordine.cognome_cliente}</span>
-                <span className="text-gray-400 text-xs truncate max-w-xs">{ordine.materiale}</span>
-                {ordine.data_spedizione && (
-                  <span className="text-xs text-gray-400">🚚 {new Date(ordine.data_spedizione).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-                )}
-                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Spedito</span>
-              </div>
-            ) : (
-              <OrdineCardIvan key={ordine.id} ordine={ordine} onAggiornaStato={aggiornaStato} />
-            )
+            <OrdineCardIvan key={ordine.id} ordine={ordine} onAggiornaStato={aggiornaStato} sezioneAttiva={sezioneAttiva} />
           ))}
         </div>
       )}
@@ -194,7 +182,7 @@ function StatCard({ label, valore, color, attivo, onClick }) {
   )
 }
 
-function OrdineCardIvan({ ordine, onAggiornaStato }) {
+function OrdineCardIvan({ ordine, onAggiornaStato, sezioneAttiva }) {
   const [aggiornamento, setAggiornamento] = useState(false)
 
   const dataOrdine = new Date(ordine.created_at).toLocaleDateString('it-IT', {
@@ -207,12 +195,16 @@ function OrdineCardIvan({ ordine, onAggiornaStato }) {
     setAggiornamento(false)
   }
 
+  const isSpedito = ordine.stato === 'spedito'
+
   const borderColor = ordine.stato === 'pronto_oggi' ? 'border-green-300'
     : ordine.stato === 'bollettato' ? 'border-blue-300'
+    : ordine.stato === 'spedito' ? 'border-gray-200'
     : 'border-yellow-300'
 
   const headerBg = ordine.stato === 'pronto_oggi' ? 'bg-green-50'
     : ordine.stato === 'bollettato' ? 'bg-blue-50'
+    : ordine.stato === 'spedito' ? 'bg-gray-50'
     : 'bg-yellow-50'
 
   return (
@@ -278,6 +270,13 @@ function OrdineCardIvan({ ordine, onAggiornaStato }) {
           <DocRow label="Distinta" url={ordine.distinta_url} />
           <DocRow label="Dettagli ordine" url={ordine.dettagli_url} />
         </div>
+
+        {/* Data spedizione per ordini spediti */}
+        {isSpedito && ordine.data_spedizione && (
+          <div className="pt-1 text-sm text-gray-500">
+            🚚 Spedito il {new Date(ordine.data_spedizione).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+          </div>
+        )}
 
         {/* Bottoni stato */}
         {ordine.stato !== 'spedito' && (
