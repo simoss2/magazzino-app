@@ -106,6 +106,11 @@ export async function PATCH(request, { params }) {
     if (stato === 'bollettato') aggiornamentoStato.data_bollettato = now
     if (stato === 'spedito') aggiornamentoStato.data_spedizione = now
 
+    // Rimuove automaticamente la priorità quando l'ordine avanza
+    if (['pronto_oggi', 'bollettato', 'spedito'].includes(stato)) {
+      aggiornamentoStato.priorita = false
+    }
+
     if (stato === 'pronto_oggi') {
       try {
         const { data: ordineCompleto } = await supabase.from('ordini').select('*').eq('id', id).single()
