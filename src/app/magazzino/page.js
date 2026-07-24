@@ -212,7 +212,7 @@ function OrdineCardIvan({ ordine, onAggiornaStato, sezioneAttiva }) {
       {ordine.priorita && (
         <div className="bg-red-500 px-5 py-1.5 flex items-center gap-2">
           <span>🚨</span>
-          <span className="text-black text-xs font-semibold tracking-wide">ORDINE PRIORITARIO — da evadere subito</span>
+          <span className="text-black text-xs font-semibold tracking-wide">ORDINE PRIORITARIO — preparare quanto prima</span>
         </div>
       )}
       {/* Header card */}
