@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
 const BADGE = {
+  nuovo:          'bg-purple-100 text-purple-800 border-purple-200',
   in_elaborazione: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   pronto_oggi: 'bg-green-100 text-green-800 border-green-200',
   bollettato: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -10,6 +11,7 @@ const BADGE = {
 }
 
 function labelStato(ordine) {
+  if (ordine.stato === 'nuovo') return 'Nuovo'
   if (ordine.stato === 'pronto_oggi') return 'Pronto oggi'
   if (ordine.stato === 'bollettato') return 'Bollettato'
   if (ordine.stato === 'spedito') return 'Spedito'
@@ -19,7 +21,7 @@ function labelStato(ordine) {
 export default function MagazzinoPage() {
   const [ordini, setOrdini] = useState([])
   const [caricamento, setCaricamento] = useState(true)
-  const [sezioneAttiva, setSezioneAttiva] = useState('in_elaborazione')
+  const [sezioneAttiva, setSezioneAttiva] = useState('nuovo')
 
   const caricaOrdini = useCallback(async () => {
     const res = await fetch('/api/ordini')
@@ -46,24 +48,31 @@ export default function MagazzinoPage() {
     }
   }
 
+  const ordiniNuovi = ordini.filter(o => o.stato === 'nuovo')
   const ordiniInPreparazione = ordini.filter(o => o.stato === 'in_elaborazione')
   const ordiniPronti = ordini.filter(o => o.stato === 'pronto_oggi')
   const ordiniBollettati = ordini.filter(o => o.stato === 'bollettato')
   const ordiniSpediti = ordini.filter(o => o.stato === 'spedito')
 
-  const ordiniVisibili = (sezioneAttiva === 'in_elaborazione'
-    ? ordiniInPreparazione
-    : sezioneAttiva === 'pronto_oggi'
-    ? ordiniPronti
-    : sezioneAttiva === 'bollettato'
-    ? ordiniBollettati
+  const ordiniVisibili = (
+    sezioneAttiva === 'nuovo' ? ordiniNuovi
+    : sezioneAttiva === 'in_elaborazione' ? ordiniInPreparazione
+    : sezioneAttiva === 'pronto_oggi' ? ordiniPronti
+    : sezioneAttiva === 'bollettato' ? ordiniBollettati
     : ordiniSpediti
   ).sort((a, b) => (b.priorita ? 1 : 0) - (a.priorita ? 1 : 0))
 
   return (
     <div>
       {/* Contatori / Tab */}
-      <div className="grid grid-cols-4 gap-2 mb-6">
+      <div className="grid grid-cols-5 gap-2 mb-6">
+        <StatCard
+          label="Nuovi"
+          valore={ordiniNuovi.length}
+          color="purple"
+          attivo={sezioneAttiva === 'nuovo'}
+          onClick={() => setSezioneAttiva('nuovo')}
+        />
         <StatCard
           label="Da preparare"
           valore={ordiniInPreparazione.length}
@@ -169,6 +178,7 @@ function DocRow({ label, url }) {
 
 function StatCard({ label, valore, color, attivo, onClick }) {
   const colors = {
+    purple: attivo ? 'bg-purple-500 border-purple-500 text-white shadow-md' : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100',
     yellow: attivo ? 'bg-yellow-400 border-yellow-400 text-white shadow-md' : 'bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100',
     green: attivo ? 'bg-green-500 border-green-500 text-white shadow-md' : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100',
     blue: attivo ? 'bg-blue-500 border-blue-500 text-white shadow-md' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100',
@@ -283,6 +293,15 @@ function OrdineCardIvan({ ordine, onAggiornaStato, sezioneAttiva }) {
           <div className="pt-2 border-t border-gray-100">
             <p className="text-xs text-gray-400 mb-3">Aggiorna stato:</p>
             <div className="flex gap-2 flex-wrap">
+              {ordine.stato === 'nuovo' && (
+                <button
+                  onClick={() => handleStato('in_elaborazione')}
+                  disabled={aggiornamento}
+                  className="flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors bg-purple-50 hover:bg-purple-600 hover:text-white text-purple-700 border border-purple-200 disabled:opacity-50"
+                >
+                  {aggiornamento ? '...' : '✅ Preso in carico'}
+                </button>
+              )}
               <button
                 onClick={() => handleStato('pronto_oggi')}
                 disabled={aggiornamento || ordine.stato === 'pronto_oggi'}

@@ -21,10 +21,11 @@ function prodottiToMateriale(prodotti) {
 }
 
 const STATI = {
-  in_elaborazione: { label: 'In preparazione', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  pronto_oggi:     { label: 'Pronto oggi',      color: 'bg-green-100 text-green-800 border-green-200' },
-  bollettato:      { label: 'Bollettato',       color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  spedito:         { label: 'Spedito',          color: 'bg-gray-100 text-gray-600 border-gray-200' },
+  nuovo:           { label: 'Nuovo',            color: 'bg-purple-100 text-purple-800 border-purple-200' },
+  in_elaborazione: { label: 'In preparazione',  color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+  pronto_oggi:     { label: 'Pronto oggi',       color: 'bg-green-100 text-green-800 border-green-200' },
+  bollettato:      { label: 'Bollettato',        color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  spedito:         { label: 'Spedito',           color: 'bg-gray-100 text-gray-600 border-gray-200' },
 }
 
 function labelStato(ordine) {
@@ -99,13 +100,14 @@ export default function AdminDashboard() {
   const [filtroStato, setFiltroStato] = useState('tutti')
   const [aggiornamento, setAggiornamento] = useState(null)
   const [ricerca, setRicerca] = useState('')
-  const [contatori, setContatori] = useState({ in_elaborazione: 0, pronto_oggi: 0, bollettato: 0, spedito: 0 })
+  const [contatori, setContatori] = useState({ nuovo: 0, in_elaborazione: 0, pronto_oggi: 0, bollettato: 0, spedito: 0 })
 
   const caricaContatori = useCallback(async () => {
     const res = await fetch('/api/ordini')
     const data = await res.json()
     if (Array.isArray(data)) {
       setContatori({
+        nuovo:           data.filter(o => o.stato === 'nuovo').length,
         in_elaborazione: data.filter(o => o.stato === 'in_elaborazione').length,
         pronto_oggi:     data.filter(o => o.stato === 'pronto_oggi').length,
         bollettato:      data.filter(o => o.stato === 'bollettato').length,
@@ -160,7 +162,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Ordini</h1>
         <div className="flex gap-2 flex-wrap">
-          {['tutti', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito'].map(s => (
+          {['tutti', 'nuovo', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito'].map(s => (
             <button
               key={s}
               onClick={() => { setFiltroStato(s); setCaricamento(true) }}
@@ -443,6 +445,7 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
             <p className="text-gray-500 text-xs uppercase tracking-wide mb-2">Cronologia stati</p>
             <div className="space-y-1">
               {[
+                { icon: '🟣', label: 'Nuovo',           data: ordine.data_nuovo },
                 { icon: '🟡', label: 'In preparazione', data: ordine.data_in_elaborazione },
                 { icon: '🟢', label: 'Pronto oggi',     data: ordine.data_pronto_oggi },
                 { icon: '🔵', label: 'Bollettato',      data: ordine.data_bollettato },

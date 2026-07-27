@@ -86,7 +86,7 @@ export async function PATCH(request, { params }) {
     }
 
     // Aggiornamento stato
-    const statiValidi = ['in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito']
+    const statiValidi = ['nuovo', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito']
     if (!statiValidi.includes(stato)) {
       return NextResponse.json({ error: 'Stato non valido' }, { status: 400 })
     }
@@ -101,6 +101,7 @@ export async function PATCH(request, { params }) {
     const now = new Date().toISOString()
     const aggiornamentoStato = { stato }
 
+    if (stato === 'nuovo') aggiornamentoStato.data_nuovo = now
     if (stato === 'in_elaborazione') aggiornamentoStato.data_in_elaborazione = now
     if (stato === 'pronto_oggi') aggiornamentoStato.data_pronto_oggi = now
     if (stato === 'bollettato') aggiornamentoStato.data_bollettato = now
