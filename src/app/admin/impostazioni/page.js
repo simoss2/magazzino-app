@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 
 export default function ImpostazioniPage() {
   const [form, setForm] = useState({ email_admin: '', email_magazzino: '' })
+  const [notificheTelegram, setNotificheTelegram] = useState(true)
+  const [salvatoNotifiche, setSalvatoNotifiche] = useState(false)
   const [caricamento, setCaricamento] = useState(true)
   const [salvato, setSalvato] = useState(false)
   const [errore, setErrore] = useState('')
@@ -25,6 +27,7 @@ export default function ImpostazioniPage() {
       fetch('/api/corrieri').then(r => r.json()),
     ]).then(([imp, port, corr]) => {
       setForm(imp)
+      setNotificheTelegram(imp.notifiche_telegram_ivan !== 'false')
       setPortali(port)
       setCorrieri(corr)
       setCaricamento(false)
@@ -98,11 +101,47 @@ export default function ImpostazioniPage() {
     if (res.ok) setCorrieri(prev => prev.filter(c => c.id !== id))
   }
 
+  async function handleToggleNotifiche() {
+    const nuovoValore = !notificheTelegram
+    setNotificheTelegram(nuovoValore)
+    await fetch('/api/impostazioni', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notifiche_telegram_ivan: String(nuovoValore) }),
+    })
+    setSalvatoNotifiche(true)
+    setTimeout(() => setSalvatoNotifiche(false), 2000)
+  }
+
   if (caricamento) return <div className="text-gray-500 py-8">Caricamento...</div>
 
   return (
     <div className="max-w-lg space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Impostazioni</h1>
+
+      {/* Notifiche Telegram */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Notifiche Telegram</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-700">Notifiche a Ivan</p>
+            <p className="text-xs text-gray-400 mt-0.5">Invia messaggi Telegram a Ivan per ogni nuovo ordine e documento</p>
+          </div>
+          <button
+            onClick={handleToggleNotifiche}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              notificheTelegram ? 'bg-green-500' : 'bg-gray-300'
+            }`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              notificheTelegram ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
+        </div>
+        {salvatoNotifiche && (
+          <p className="text-xs text-green-600 mt-2">✓ Salvato</p>
+        )}
+      </div>
 
       {/* Portali */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">

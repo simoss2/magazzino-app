@@ -55,11 +55,14 @@ export async function POST(request) {
 
     if (error) throw error
 
-    // Notifica Telegram a Ivan — salva message_id per poterlo eliminare in seguito
+    // Notifica Telegram a Ivan (solo se abilitata)
     try {
-      const ivanMsgId = await inviaNotificaNuovoOrdine({ ordine })
-      if (ivanMsgId) {
-        await supabase.from('ordini').update({ telegram_ivan_message_id: ivanMsgId }).eq('id', ordine.id)
+      const { data: imp } = await supabase.from('impostazioni').select('valore').eq('chiave', 'notifiche_telegram_ivan').single()
+      if (imp?.valore !== 'false') {
+        const ivanMsgId = await inviaNotificaNuovoOrdine({ ordine })
+        if (ivanMsgId) {
+          await supabase.from('ordini').update({ telegram_ivan_message_id: ivanMsgId }).eq('id', ordine.id)
+        }
       }
     } catch (tgErr) {
       console.error('Errore notifica Telegram:', tgErr)

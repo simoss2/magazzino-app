@@ -74,9 +74,14 @@ export async function PATCH(request, { params }) {
       if (distinta_url && !ordineAttuale?.distinta_url) notifiche.push('distinta')
       if (dettagli_url && !ordineAttuale?.dettagli_url) notifiche.push('dettagli')
 
-      for (const tipoDoc of notifiche) {
+      if (notifiche.length > 0) {
         try {
-          await inviaNotificaDocumento({ ordine, tipoDoc })
+          const { data: imp } = await supabase.from('impostazioni').select('valore').eq('chiave', 'notifiche_telegram_ivan').single()
+          if (imp?.valore !== 'false') {
+            for (const tipoDoc of notifiche) {
+              await inviaNotificaDocumento({ ordine, tipoDoc })
+            }
+          }
         } catch (tgErr) {
           console.error('Errore notifica Telegram documento:', tgErr)
         }
