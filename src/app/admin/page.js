@@ -86,6 +86,17 @@ function buildMessaggioWhatsApp(ordine) {
   return `Gentile ${nome_cliente} ${cognome_cliente},\n\nLa contatto a nome di Doccia Store.\n\nIn riferimento al Suo ordine effettuato ${portaleLinea}, Le comunichiamo che abbiamo preso in carico i seguenti articoli:\n${prodotti}\n\nLa ringraziamo per aver scelto Doccia Store e per la fiducia che ha riposto in noi.\n\nAl fine di poterLe inviare il tracciamento della spedizione, Le chiediamo gentilmente di fornirci il Suo indirizzo email.\n\nRestiamo a Sua completa disposizione per qualsiasi ulteriore informazione.\n\nCordiali saluti,\nSimone\nDoccia Store`
 }
 
+function buildMessaggioRiserva(ordine) {
+  const { nome_cliente, cognome_cliente, portale } = ordine
+  const isFrancia = portale?.toLowerCase().includes('francia')
+
+  if (isFrancia) {
+    return `Cher(e) ${nome_cliente} ${cognome_cliente},\n\n🚨 MESSAGE IMPORTANT – MERCI DE LIRE ATTENTIVEMENT ! 🚨\nNous rappelons à tous nos clients qu'au moment de la livraison, il est de FONDAMENTALE IMPORTANCE de vérifier attentivement le colis et, en cas d'anomalie ou de dommage, d'indiquer une RÉSERVE DE CONTRÔLE MOTIVÉE.\n\n⚠️ LA RÉSERVE DOIT ÊTRE MOTIVÉE : il est indispensable de préciser clairement la raison, par exemple :\n\n* Emballage endommagé\n* Colis écrasé\n* Emballage ouvert\n* Produit descellé / déballé\n* Marchandise endommagée\n\n❗ ATTENTION : même si le transporteur vous met la pression, vous demande de signer rapidement ou vous dit qu'« une simple signature suffit », il est FONDAMENTAL de ne pas accepter la livraison sans inscrire une réserve motivée, si le colis présente une anomalie.\nLa simple mention « RÉSERVE DE CONTRÔLE » N'EST PAS SUFFISANTE : il faut toujours préciser le motif de la réserve.\n\n🚨 EN L'ABSENCE D'UNE RÉSERVE MOTIVÉE, LES DEMANDES DE REMBOURSEMENT OU DE REMPLACEMENT NE POURRONT PAS ÊTRE ACCEPTÉES en cas de dommage constaté sur la marchandise.\n\nNous vous demandons donc de faire preuve de la PLUS GRANDE ATTENTION au moment de la livraison et de ne pas vous laisser influencer par la précipitation du transporteur.\n\nMerci pour votre collaboration.`
+  }
+
+  return `Gentile ${nome_cliente} ${cognome_cliente},\n\n🚨 MESSAGGIO IMPORTANTE – PRESTARE MASSIMA ATTENZIONE! 🚨\nRicordiamo a tutti i nostri clienti che, al momento della consegna, è di FONDAMENTALE IMPORTANZA controllare attentamente il pacco e, in caso di anomalie o danneggiamenti, inserire una RISERVA DI CONTROLLO MOTIVATA.\n\n⚠️ LA RISERVA DEVE ESSERE MOTIVATA, specificando chiaramente il motivo, ad esempio:\n\n* Imballaggio danneggiato\n* Collo schiacciato\n* Imballaggio aperto\n* Prodotto sconfezionato\n* Merce danneggiata\n\n❗ ATTENZIONE: anche se il corriere mette fretta, invita a firmare velocemente oppure dice che "basta solo una semplice firma", è fondamentale NON ACCETTARE LA CONSEGNA SENZA INSERIRE LA RISERVA MOTIVATA, qualora il pacco presenti anomalie.\nLa semplice dicitura "RISERVA DI CONTROLLO" NON È SUFFICIENTE: bisogna sempre specificare il motivo della riserva.\n\n🚨 IN ASSENZA DI UNA RISERVA MOTIVATA, NON POTRANNO ESSERE ACCETTATE RICHIESTE DI RIMBORSO O SOSTITUZIONE per eventuali danni alla merce.\n\nVi chiediamo quindi di prestare la MASSIMA ATTENZIONE al momento della consegna e di non lasciarvi condizionare dalla fretta del corriere.\n\nGrazie per la collaborazione.`
+}
+
 function docMancanti(ordine) {
   const mancanti = []
   if (!ordine.bolla_url) mancanti.push('bolla')
@@ -410,6 +421,12 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
                       className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors"
                     >
                       💬 Invia su WhatsApp
+                    </a>
+                    <a
+                      href={`whatsapp://send?phone=${normalizzaTelefono(ordine.telefono_cliente)}&text=${encodeURIComponent(buildMessaggioRiserva(ordine))}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors"
+                    >
+                      ⚠️ Riserva di controllo
                     </a>
                   </div>
                 </div>
