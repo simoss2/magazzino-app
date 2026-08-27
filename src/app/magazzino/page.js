@@ -26,7 +26,7 @@ export default function MagazzinoPage() {
   const caricaOrdini = useCallback(async () => {
     const res = await fetch('/api/ordini')
     const data = await res.json()
-    setOrdini(data)
+    setOrdini(Array.isArray(data) ? data.filter(o => o.stato !== 'sospeso') : [])
     setCaricamento(false)
   }, [])
 

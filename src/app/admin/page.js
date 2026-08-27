@@ -26,6 +26,7 @@ const STATI = {
   pronto_oggi:     { label: 'Pronto oggi',       color: 'bg-green-100 text-green-800 border-green-200' },
   bollettato:      { label: 'Bollettato',        color: 'bg-blue-100 text-blue-800 border-blue-200' },
   spedito:         { label: 'Spedito',           color: 'bg-gray-100 text-gray-600 border-gray-200' },
+  sospeso:         { label: 'Sospeso',           color: 'bg-orange-100 text-orange-800 border-orange-200' },
 }
 
 function labelStato(ordine) {
@@ -111,7 +112,7 @@ export default function AdminDashboard() {
   const [filtroStato, setFiltroStato] = useState('tutti')
   const [aggiornamento, setAggiornamento] = useState(null)
   const [ricerca, setRicerca] = useState('')
-  const [contatori, setContatori] = useState({ nuovo: 0, in_elaborazione: 0, pronto_oggi: 0, bollettato: 0, spedito: 0 })
+  const [contatori, setContatori] = useState({ nuovo: 0, in_elaborazione: 0, pronto_oggi: 0, bollettato: 0, spedito: 0, sospeso: 0 })
 
   const caricaContatori = useCallback(async () => {
     const res = await fetch('/api/ordini')
@@ -123,6 +124,7 @@ export default function AdminDashboard() {
         pronto_oggi:     data.filter(o => o.stato === 'pronto_oggi').length,
         bollettato:      data.filter(o => o.stato === 'bollettato').length,
         spedito:         data.filter(o => o.stato === 'spedito').length,
+        sospeso:         data.filter(o => o.stato === 'sospeso').length,
       })
     }
   }, [])
@@ -144,6 +146,17 @@ export default function AdminDashboard() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stato: 'spedito' }),
+    })
+    await caricaOrdini()
+    setAggiornamento(null)
+  }
+
+  async function cambiaStato(id, stato) {
+    setAggiornamento(id)
+    await fetch(`/api/ordini/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stato }),
     })
     await caricaOrdini()
     setAggiornamento(null)
@@ -173,7 +186,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Ordini</h1>
         <div className="flex gap-2 flex-wrap">
-          {['tutti', 'nuovo', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito'].map(s => (
+          {['tutti', 'nuovo', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito', 'sospeso'].map(s => (
             <button
               key={s}
               onClick={() => { setFiltroStato(s); setCaricamento(true) }}
@@ -224,6 +237,7 @@ export default function AdminDashboard() {
               ordine={ordine}
               onSegnaSpedito={segnaSpedito}
               onRiportaProntoOggi={riportaProntoOggi}
+              onCambiaStato={cambiaStato}
               aggiornamento={aggiornamento}
               onAggiornato={caricaOrdini}
             />
@@ -234,7 +248,7 @@ export default function AdminDashboard() {
   )
 }
 
-function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento, onAggiornato }) {
+function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, onCambiaStato, aggiornamento, onAggiornato }) {
   const [aperto, setAperto] = useState(false)
   const [modificando, setModificando] = useState(false)
   const [eliminando, setEliminando] = useState(false)
@@ -467,6 +481,7 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
                 { icon: '🟢', label: 'Pronto oggi',     data: ordine.data_pronto_oggi },
                 { icon: '🔵', label: 'Bollettato',      data: ordine.data_bollettato },
                 { icon: '🚚', label: 'Spedito',         data: ordine.data_spedizione },
+                { icon: '⏸️', label: 'Sospeso',         data: ordine.data_sospeso },
               ].map(({ icon, label, data }) => (
                 <div key={label} className={`flex items-center justify-between text-xs ${data ? 'text-gray-700' : 'text-gray-300'}`}>
                   <span>{icon} {label}</span>
@@ -525,6 +540,44 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, aggiornamento
               >
                 {aggiornamento === ordine.id ? 'Aggiornamento...' : '↩ Riporta a Pronto oggi'}
               </button>
+            </div>
+          )}
+
+          {/* Sospendi */}
+          {ordine.stato !== 'spedito' && ordine.stato !== 'sospeso' && (
+            <div className="pt-1">
+              <button
+                onClick={() => onCambiaStato(ordine.id, 'sospeso')}
+                disabled={aggiornamento === ordine.id}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {aggiornamento === ordine.id ? 'Aggiornamento...' : '⏸ Sospendi ordine'}
+              </button>
+            </div>
+          )}
+
+          {/* Ripristino da sospeso */}
+          {ordine.stato === 'sospeso' && (
+            <div className="pt-2 border border-orange-200 rounded-lg p-3 bg-orange-50">
+              <p className="text-xs text-orange-700 font-medium mb-2">⏸ Ordine sospeso — riporta in:</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { stato: 'nuovo',           label: 'Nuovo',           cls: 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200' },
+                  { stato: 'in_elaborazione', label: 'In preparazione', cls: 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200' },
+                  { stato: 'pronto_oggi',     label: 'Pronto oggi',     cls: 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200' },
+                  { stato: 'bollettato',      label: 'Bollettato',      cls: 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200' },
+                  { stato: 'spedito',         label: 'Spedito',         cls: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200' },
+                ].map(({ stato, label, cls }) => (
+                  <button
+                    key={stato}
+                    onClick={() => onCambiaStato(ordine.id, stato)}
+                    disabled={aggiornamento === ordine.id}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-50 ${cls}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
