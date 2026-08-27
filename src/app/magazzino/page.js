@@ -32,7 +32,7 @@ export default function MagazzinoPage() {
 
   useEffect(() => {
     caricaOrdini()
-    const interval = setInterval(caricaOrdini, 60000)
+    const interval = setInterval(caricaOrdini, 5000)
     return () => clearInterval(interval)
   }, [caricaOrdini])
 
