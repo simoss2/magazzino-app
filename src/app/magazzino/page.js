@@ -332,15 +332,11 @@ function OrdineCardIvan({ ordine, onAggiornaStato, sezioneAttiva }) {
                 </button>
               )}
               <button
-                onClick={() => handleStato('in_elaborazione')}
-                disabled={aggiornamento || ordine.stato === 'in_elaborazione'}
-                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-default ${
-                  ordine.stato === 'in_elaborazione'
-                    ? 'bg-yellow-400 text-white'
-                    : 'bg-yellow-50 hover:bg-yellow-400 hover:text-white text-yellow-700 border border-yellow-200 disabled:opacity-50'
-                }`}
+                onClick={() => handleStato('spedito')}
+                disabled={aggiornamento}
+                className="flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors bg-gray-50 hover:bg-gray-600 hover:text-white text-gray-700 border border-gray-200 disabled:opacity-50"
               >
-                {aggiornamento ? '...' : '🔄 In preparazione'}
+                {aggiornamento ? '...' : '🚚 Spedito'}
               </button>
             </div>
             {ordine.stato === 'pronto_oggi' && (
