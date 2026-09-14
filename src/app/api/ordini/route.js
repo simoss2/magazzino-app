@@ -35,7 +35,7 @@ export async function POST(request) {
     if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
 
     const body = await request.json()
-    const { nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url } = body
+    const { nome_cliente, cognome_cliente, telefono_cliente, email_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url } = body
 
     if (!nome_cliente || !cognome_cliente || !materiale) {
       return NextResponse.json({ error: 'Campi obbligatori mancanti' }, { status: 400 })
@@ -55,7 +55,7 @@ export async function POST(request) {
 
     const { data: ordine, error } = await supabase
       .from('ordini')
-      .insert({ numero_ordine: nextNumero, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url, stato: 'nuovo', data_nuovo: new Date().toISOString() })
+      .insert({ numero_ordine: nextNumero, nome_cliente, cognome_cliente, telefono_cliente, email_cliente: email_cliente || null, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url, stato: 'nuovo', data_nuovo: new Date().toISOString() })
       .select()
       .single()
 
