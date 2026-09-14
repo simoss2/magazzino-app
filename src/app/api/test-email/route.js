@@ -20,11 +20,15 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Nessuna chiave Resend trovata' }, { status: 500 })
     }
 
+    const tutteLeVars = Object.keys(process.env)
+      .filter(k => k.toLowerCase().includes('resend'))
+
     if (!to) {
       return NextResponse.json({
         RESEND_KEY_NEW: keyNew ? keyNew.slice(0, 12) + '...' : 'NON TROVATA',
         RESEND_API_KEY: keyOld ? keyOld.slice(0, 12) + '...' : 'NON TROVATA',
         usa: keyNew ? 'RESEND_KEY_NEW' : 'RESEND_API_KEY',
+        nomi_variabili_resend: tutteLeVars,
       })
     }
 
