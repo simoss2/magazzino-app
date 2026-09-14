@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY1)
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 const TRADUZIONI_FR = {
   'Box doccia':    'Cabine de douche',

@@ -12,27 +12,14 @@ export async function GET(request) {
     const to = searchParams.get('to')
 
     // Diagnostica env vars
-    const resendKey = process.env.RESEND_API_KEY1
-    const resendKey2 = process.env.RESEND_API_KEY
-    const allResendKeys = Object.keys(process.env).filter(k => k.toLowerCase().includes('resend'))
-
-    if (!to) {
-      return NextResponse.json({
-        debug: {
-          RESEND_API_KEY1: resendKey ? 'TROVATA (' + resendKey.slice(0, 8) + '...)' : 'NON TROVATA',
-          RESEND_API_KEY: resendKey2 ? 'TROVATA' : 'NON TROVATA',
-          tutte_le_chiavi_resend: allResendKeys,
-          node_env: process.env.NODE_ENV,
-        }
-      })
-    }
+    const resendKey = process.env.RESEND_API_KEY
 
     if (!resendKey) {
-      return NextResponse.json({
-        error: 'RESEND_API_KEY1 non trovata',
-        tutte_le_chiavi_resend: allResendKeys,
-        node_env: process.env.NODE_ENV,
-      }, { status: 500 })
+      return NextResponse.json({ error: 'RESEND_API_KEY non trovata nelle env vars' }, { status: 500 })
+    }
+
+    if (!to) {
+      return NextResponse.json({ error: 'Parametro ?to=email mancante' }, { status: 400 })
     }
 
     const resend = new Resend(resendKey)
