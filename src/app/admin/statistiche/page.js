@@ -96,6 +96,24 @@ export default function StatistichePage() {
   }))
   const maxStato = Math.max(...perStato.map(s => s.valore), 1)
 
+  // Prodotti più venduti
+  const prodottiMap = {}
+  ordini.forEach(o => {
+    if (!o.materiale) return
+    o.materiale.split('\n').filter(Boolean).forEach(riga => {
+      const match = riga.match(/^(\d+)x ([^—]+) — (.+)$/)
+      if (match) {
+        const qty = parseInt(match[1])
+        const nome = `${match[2].trim()} — ${match[3].trim()}`
+        prodottiMap[nome] = (prodottiMap[nome] || 0) + qty
+      } else {
+        prodottiMap[riga.trim()] = (prodottiMap[riga.trim()] || 0) + 1
+      }
+    })
+  })
+  const prodottiSorted = Object.entries(prodottiMap).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  const maxProdotto = Math.max(...prodottiSorted.map(p => p[1]), 1)
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Statistiche</h1>
@@ -145,6 +163,19 @@ export default function StatistichePage() {
           </div>
         </div>
       </div>
+
+      {/* Prodotti più venduti */}
+      {prodottiSorted.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Prodotti più venduti</h2>
+          <div className="space-y-3">
+            {prodottiSorted.map(([nome, qty]) => (
+              <BarRow key={nome} label={nome} valore={qty} max={maxProdotto} color="bg-teal-400" />
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-3">Basato sulle quantità totali ordinate</p>
+        </div>
+      )}
 
       {sospesi > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
