@@ -18,6 +18,7 @@ export default function NuovoOrdinePage() {
     nome_cliente: '',
     cognome_cliente: '',
     telefono_cliente: '',
+    email_cliente: '',
     portale: '',
     corriere: '',
     note: '',
@@ -156,6 +157,17 @@ export default function NuovoOrdinePage() {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="+39 333 1234567"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email cliente <span className="text-gray-400 font-normal">(per notifica spedizione)</span></label>
+              <input
+                type="email"
+                name="email_cliente"
+                value={form.email_cliente}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="cliente@email.com"
               />
             </div>
             <div>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 import { inviaNotificaPronto, inviaNotificaDocumento, eliminaMessaggio } from '@/lib/telegram'
+import { inviaEmailSpedizione } from '@/lib/email'
 
 // PATCH /api/ordini/[id] — aggiorna stato o documenti
 export async function PATCH(request, { params }) {
@@ -27,7 +28,8 @@ export async function PATCH(request, { params }) {
     }
 
     // Aggiornamento dati anagrafici (senza notifiche)
-    if (nome_cliente !== undefined || cognome_cliente !== undefined || telefono_cliente !== undefined || portale !== undefined || corriere !== undefined || materiale !== undefined || note !== undefined) {
+    const { email_cliente } = body
+    if (nome_cliente !== undefined || cognome_cliente !== undefined || telefono_cliente !== undefined || portale !== undefined || corriere !== undefined || materiale !== undefined || note !== undefined || email_cliente !== undefined) {
       const aggiornamento = {}
       if (nome_cliente !== undefined) aggiornamento.nome_cliente = nome_cliente
       if (cognome_cliente !== undefined) aggiornamento.cognome_cliente = cognome_cliente
@@ -36,6 +38,7 @@ export async function PATCH(request, { params }) {
       if (corriere !== undefined) aggiornamento.corriere = corriere
       if (materiale !== undefined) aggiornamento.materiale = materiale
       if (note !== undefined) aggiornamento.note = note
+      if (email_cliente !== undefined) aggiornamento.email_cliente = email_cliente
 
       const { data: ordine, error } = await supabase
         .from('ordini')
@@ -148,6 +151,15 @@ export async function PATCH(request, { params }) {
       .single()
 
     if (error) throw error
+
+    // Invia email al cliente quando l'ordine viene spedito
+    if (stato === 'spedito' && ordine.email_cliente) {
+      try {
+        await inviaEmailSpedizione(ordine)
+      } catch (emailErr) {
+        console.error('Errore invio email spedizione:', emailErr)
+      }
+    }
 
     return NextResponse.json(ordine)
   } catch (err) {

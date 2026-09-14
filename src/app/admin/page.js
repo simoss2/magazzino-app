@@ -352,6 +352,7 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, onCambiaStato
     nome_cliente: ordine.nome_cliente,
     cognome_cliente: ordine.cognome_cliente,
     telefono_cliente: ordine.telefono_cliente || '',
+    email_cliente: ordine.email_cliente || '',
     portale: ordine.portale || '',
     corriere: ordine.corriere || '',
     note: ordine.note || '',
@@ -454,6 +455,10 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, onCambiaStato
                   <input className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.telefono_cliente} onChange={e => setFormModifica(p => ({...p, telefono_cliente: e.target.value}))} />
                 </div>
                 <div>
+                  <label className="block text-xs text-gray-500 mb-1">Email cliente</label>
+                  <input type="email" className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.email_cliente} onChange={e => setFormModifica(p => ({...p, email_cliente: e.target.value}))} placeholder="cliente@email.com" />
+                </div>
+                <div>
                   <label className="block text-xs text-gray-500 mb-1">Portale</label>
                   <input className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={formModifica.portale} onChange={e => setFormModifica(p => ({...p, portale: e.target.value}))} />
                 </div>
@@ -507,6 +512,15 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, onCambiaStato
                 <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Ricevuto</p>
                 <p className="text-gray-800">{dataOrdine}</p>
               </div>
+              {ordine.email_cliente && (
+                <div>
+                  <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Email cliente</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-800">{ordine.email_cliente}</p>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-green-700">✉ notifica attiva</span>
+                  </div>
+                </div>
+              )}
               {ordine.telefono_cliente && (
                 <div>
                   <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">Telefono</p>
