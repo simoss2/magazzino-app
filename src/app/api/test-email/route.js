@@ -3,7 +3,6 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { Resend } from 'resend'
 
 // GET /api/test-email — test diretto invio email via Resend
-// Usare solo per debug, poi eliminare
 export async function GET(request) {
   try {
     const { data: { user } } = await createSupabaseServerClient().auth.getUser()
@@ -11,13 +10,32 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url)
     const to = searchParams.get('to')
-    if (!to) return NextResponse.json({ error: 'Parametro ?to=email mancante' }, { status: 400 })
 
-    const apiKey = process.env.RESEND_API_KEY1
-    if (!apiKey) return NextResponse.json({ error: 'RESEND_API_KEY1 non trovata nelle env vars' }, { status: 500 })
+    // Diagnostica env vars
+    const resendKey = process.env.RESEND_API_KEY1
+    const resendKey2 = process.env.RESEND_API_KEY
+    const allResendKeys = Object.keys(process.env).filter(k => k.toLowerCase().includes('resend'))
 
-    const resend = new Resend(apiKey)
+    if (!to) {
+      return NextResponse.json({
+        debug: {
+          RESEND_API_KEY1: resendKey ? 'TROVATA (' + resendKey.slice(0, 8) + '...)' : 'NON TROVATA',
+          RESEND_API_KEY: resendKey2 ? 'TROVATA' : 'NON TROVATA',
+          tutte_le_chiavi_resend: allResendKeys,
+          node_env: process.env.NODE_ENV,
+        }
+      })
+    }
 
+    if (!resendKey) {
+      return NextResponse.json({
+        error: 'RESEND_API_KEY1 non trovata',
+        tutte_le_chiavi_resend: allResendKeys,
+        node_env: process.env.NODE_ENV,
+      }, { status: 500 })
+    }
+
+    const resend = new Resend(resendKey)
     const result = await resend.emails.send({
       from: 'Doccia Store <ordini@docciastore.com>',
       to,
@@ -28,15 +46,13 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       resend_id: result?.data?.id,
-      api_key_presente: !!apiKey,
-      api_key_prefix: apiKey.slice(0, 8) + '...',
+      resend_error: result?.error,
       inviato_a: to,
     })
   } catch (err) {
     return NextResponse.json({
       success: false,
       errore: err.message,
-      stack: err.stack,
     }, { status: 500 })
   }
 }
