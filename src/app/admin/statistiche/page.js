@@ -34,6 +34,7 @@ function BarRow({ label, valore, max, color = 'bg-blue-400' }) {
 export default function StatistichePage() {
   const [ordini, setOrdini] = useState([])
   const [caricamento, setCaricamento] = useState(true)
+  const [ricercaProdotto, setRicercaProdotto] = useState('')
 
   useEffect(() => {
     fetch('/api/ordini')
@@ -111,8 +112,12 @@ export default function StatistichePage() {
       }
     })
   })
-  const prodottiSorted = Object.entries(prodottiMap).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  const prodottiFiltrati = Object.entries(prodottiMap)
+    .filter(([nome]) => ricercaProdotto.trim() === '' || nome.toLowerCase().includes(ricercaProdotto.toLowerCase()))
+    .sort((a, b) => b[1] - a[1])
+  const prodottiSorted = ricercaProdotto.trim() ? prodottiFiltrati : prodottiFiltrati.slice(0, 8)
   const maxProdotto = Math.max(...prodottiSorted.map(p => p[1]), 1)
+  const totaleProdottoRicercato = prodottiFiltrati.reduce((acc, [, qty]) => acc + qty, 0)
 
   return (
     <div className="space-y-6">
@@ -165,15 +170,39 @@ export default function StatistichePage() {
       </div>
 
       {/* Prodotti più venduti */}
-      {prodottiSorted.length > 0 && (
+      {Object.keys(prodottiMap).length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Prodotti più venduti</h2>
-          <div className="space-y-3">
-            {prodottiSorted.map(([nome, qty]) => (
-              <BarRow key={nome} label={nome} valore={qty} max={maxProdotto} color="bg-teal-400" />
-            ))}
+          <div className="relative mb-4">
+            <input
+              type="text"
+              value={ricercaProdotto}
+              onChange={e => setRicercaProdotto(e.target.value)}
+              placeholder="Cerca prodotto..."
+              className="w-full pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            {ricercaProdotto && (
+              <button onClick={() => setRicercaProdotto('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
+            )}
           </div>
-          <p className="text-xs text-gray-400 mt-3">Basato sulle quantità totali ordinate</p>
+          {ricercaProdotto.trim() && (
+            <div className="mb-4 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg">
+              <p className="text-sm text-teal-700">
+                Totale per <strong>"{ricercaProdotto}"</strong>: <strong>{totaleProdottoRicercato}</strong> pezzi in {prodottiFiltrati.length} varianti
+              </p>
+            </div>
+          )}
+          <div className="space-y-3">
+            {prodottiSorted.length > 0 ? prodottiSorted.map(([nome, qty]) => (
+              <BarRow key={nome} label={nome} valore={qty} max={maxProdotto} color="bg-teal-400" />
+            )) : (
+              <p className="text-sm text-gray-400">Nessun prodotto trovato per "{ricercaProdotto}"</p>
+            )}
+          </div>
+          <p className="text-xs text-gray-400 mt-3">
+            {ricercaProdotto.trim() ? `${prodottiSorted.length} risultati` : 'Top 8 — usa la ricerca per vedere tutti'}
+          </p>
         </div>
       )}
 
