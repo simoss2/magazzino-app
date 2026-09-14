@@ -83,8 +83,7 @@ function emailTemplate({ titolo, saluto, intro, prodottiHtml, chiusura, firma, b
                     ${isFrancia ? 'Besoin d\'aide ?' : 'Hai bisogno di aiuto?'}
                   </p>
                   <p style="margin:0;font-size:14px;color:#5a4030;line-height:1.8;">
-                    📧 <a href="mailto:docciastoreweb@gmail.com" style="color:#c9956a;text-decoration:none;">docciastoreweb@gmail.com</a><br/>
-                    📧 <a href="mailto:simone.docciastore@gmail.com" style="color:#c9956a;text-decoration:none;">simone.docciastore@gmail.com</a>
+                    📧 <a href="mailto:docciastoreweb@gmail.com" style="color:#c9956a;text-decoration:none;">docciastoreweb@gmail.com</a>
                   </p>
                 </td>
               </tr>
