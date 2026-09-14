@@ -20,7 +20,7 @@ function traduciRigaFR(riga) {
   return r
 }
 
-function emailTemplate({ titolo, saluto, intro, prodottiHtml, chiusura, firma, isFrancia }) {
+function emailTemplate({ titolo, saluto, intro, prodottiHtml, chiusura, firma, banner, isFrancia }) {
   return `<!DOCTYPE html>
 <html lang="${isFrancia ? 'fr' : 'it'}">
 <head>
@@ -50,7 +50,7 @@ function emailTemplate({ titolo, saluto, intro, prodottiHtml, chiusura, firma, i
         <tr>
           <td style="background:#c9956a;padding:14px 40px;text-align:center;">
             <p style="margin:0;color:#3d1e08;font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;font-family:Arial,sans-serif;">
-              🚚 ${isFrancia ? 'Votre commande est en route !' : 'Il tuo ordine è in partenza!'}
+              ${banner}
             </p>
           </td>
         </tr>
@@ -109,49 +109,95 @@ function emailTemplate({ titolo, saluto, intro, prodottiHtml, chiusura, firma, i
 </html>`
 }
 
-function buildEmailIT(ordine) {
-  const prodottiHtml = ordine.materiale
-    .split('\n').filter(Boolean)
-    .map(r => `<p style="margin:0 0 6px;font-size:14px;color:#3d1e08;">• ${r}</p>`)
-    .join('')
-
-  const html = emailTemplate({
-    titolo: 'Il tuo ordine è stato spedito — Doccia Store',
-    saluto: `Gentile ${ordine.nome_cliente} ${ordine.cognome_cliente},`,
-    intro: `Le comunichiamo con piacere che il Suo ordine è stato <strong style="color:#3d1e08;">spedito</strong> e sarà presto in consegna. Di seguito il riepilogo degli articoli:`,
-    prodottiHtml,
-    chiusura: `Riceverà il codice di tracciamento non appena disponibile. Per qualsiasi informazione, non esiti a contattarci — siamo sempre a Sua disposizione.`,
-    firma: `Grazie per aver scelto Doccia Store`,
-    isFrancia: false,
-  })
-
-  return { subject: `Il tuo ordine Doccia Store è stato spedito 🚚`, html }
+const CONTENUTI = {
+  in_elaborazione: {
+    it: {
+      banner: '📦 Il tuo ordine è in preparazione',
+      titolo: 'Il tuo ordine è in preparazione — Doccia Store',
+      subject: 'Il tuo ordine Doccia Store è in preparazione 📦',
+      intro: `Abbiamo preso in carico il Suo ordine e il nostro team è al lavoro per prepararlo. Di seguito il riepilogo degli articoli:`,
+      chiusura: `La aggiorneremo non appena l'ordine sarà pronto per la spedizione. Per qualsiasi informazione, non esiti a contattarci.`,
+    },
+    fr: {
+      banner: '📦 Votre commande est en cours de préparation',
+      titolo: 'Votre commande est en cours de préparation — Doccia Store',
+      subject: 'Votre commande Doccia Store est en cours de préparation 📦',
+      intro: `Nous avons bien pris en charge votre commande et notre équipe travaille à sa préparation. Voici le récapitulatif de vos articles :`,
+      chiusura: `Nous vous tiendrons informé(e) dès que votre commande sera prête à être expédiée. N'hésitez pas à nous contacter pour toute question.`,
+    },
+  },
+  pronto_oggi: {
+    it: {
+      banner: '✅ Il tuo ordine è pronto per la spedizione',
+      titolo: 'Il tuo ordine è pronto — Doccia Store',
+      subject: 'Il tuo ordine Doccia Store è pronto ✅',
+      intro: `Ottima notizia! Il Suo ordine è stato preparato ed è <strong style="color:#3d1e08;">pronto per essere spedito</strong>. Di seguito il riepilogo degli articoli:`,
+      chiusura: `Riceverà a breve una conferma di spedizione con il codice di tracciamento. Per qualsiasi informazione, siamo a Sua disposizione.`,
+    },
+    fr: {
+      banner: '✅ Votre commande est prête à être expédiée',
+      titolo: 'Votre commande est prête — Doccia Store',
+      subject: 'Votre commande Doccia Store est prête ✅',
+      intro: `Bonne nouvelle ! Votre commande a été préparée et est <strong style="color:#3d1e08;">prête à être expédiée</strong>. Voici le récapitulatif de vos articles :`,
+      chiusura: `Vous recevrez prochainement une confirmation d'expédition avec le numéro de suivi. Nous restons à votre disposition.`,
+    },
+  },
+  spedito: {
+    it: {
+      banner: '🚚 Il tuo ordine è in partenza!',
+      titolo: 'Il tuo ordine è stato spedito — Doccia Store',
+      subject: 'Il tuo ordine Doccia Store è stato spedito 🚚',
+      intro: `Le comunichiamo con piacere che il Suo ordine è stato <strong style="color:#3d1e08;">spedito</strong> ed è in consegna. Di seguito il riepilogo degli articoli:`,
+      chiusura: `Riceverà il codice di tracciamento non appena disponibile. Per qualsiasi informazione, non esiti a contattarci — siamo sempre a Sua disposizione.`,
+    },
+    fr: {
+      banner: '🚚 Votre commande est en route !',
+      titolo: 'Votre commande a été expédiée — Doccia Store',
+      subject: 'Votre commande Doccia Store a été expédiée 🚚',
+      intro: `Nous avons le plaisir de vous informer que votre commande a été <strong style="color:#3d1e08;">expédiée</strong> et est en cours de livraison. Voici le récapitulatif de vos articles :`,
+      chiusura: `Vous recevrez le numéro de suivi dès qu'il sera disponible. Pour toute question, n'hésitez pas à nous contacter — nous sommes à votre entière disposition.`,
+    },
+  },
 }
 
-function buildEmailFR(ordine) {
-  const prodottiHtml = ordine.materiale
-    .split('\n').filter(Boolean)
-    .map(r => `<p style="margin:0 0 6px;font-size:14px;color:#3d1e08;">• ${traduciRigaFR(r)}</p>`)
-    .join('')
-
-  const html = emailTemplate({
-    titolo: 'Votre commande a été expédiée — Doccia Store',
-    saluto: `Cher(e) ${ordine.nome_cliente} ${ordine.cognome_cliente},`,
-    intro: `Nous avons le plaisir de vous informer que votre commande a été <strong style="color:#3d1e08;">expédiée</strong> et sera bientôt livrée. Voici le récapitulatif de vos articles :`,
-    prodottiHtml,
-    chiusura: `Vous recevrez le numéro de suivi dès qu'il sera disponible. Pour toute question, n'hésitez pas à nous contacter — nous sommes à votre entière disposition.`,
-    firma: `Merci d'avoir choisi Doccia Store`,
-    isFrancia: true,
-  })
-
-  return { subject: `Votre commande Doccia Store a été expédiée 🚚`, html }
-}
-
-export async function inviaEmailSpedizione(ordine) {
-  if (!ordine.email_cliente) return
-
+function buildEmail(ordine, stato) {
   const isFrancia = ordine.portale?.toLowerCase().includes('francia')
-  const { subject, html } = isFrancia ? buildEmailFR(ordine) : buildEmailIT(ordine)
+  const lang = isFrancia ? 'fr' : 'it'
+  const c = CONTENUTI[stato][lang]
+
+  const prodottiHtml = ordine.materiale
+    .split('\n').filter(Boolean)
+    .map(r => {
+      const riga = isFrancia ? traduciRigaFR(r) : r
+      return `<p style="margin:0 0 6px;font-size:14px;color:#3d1e08;">• ${riga}</p>`
+    })
+    .join('')
+
+  const saluto = isFrancia
+    ? `Cher(e) ${ordine.nome_cliente} ${ordine.cognome_cliente},`
+    : `Gentile ${ordine.nome_cliente} ${ordine.cognome_cliente},`
+
+  const firma = isFrancia ? `Merci d'avoir choisi Doccia Store` : `Grazie per aver scelto Doccia Store`
+
+  const html = emailTemplate({
+    titolo: c.titolo,
+    saluto,
+    intro: c.intro,
+    prodottiHtml,
+    chiusura: c.chiusura,
+    firma,
+    banner: c.banner,
+    isFrancia,
+  })
+
+  return { subject: c.subject, html }
+}
+
+export async function inviaEmailStato(ordine, stato) {
+  if (!ordine.email_cliente) return
+  if (!CONTENUTI[stato]) return
+
+  const { subject, html } = buildEmail(ordine, stato)
 
   try {
     await resend.emails.send({
@@ -160,8 +206,8 @@ export async function inviaEmailSpedizione(ordine) {
       subject,
       html,
     })
-    console.log('Email spedizione inviata a:', ordine.email_cliente)
+    console.log(`Email stato "${stato}" inviata a:`, ordine.email_cliente)
   } catch (err) {
-    console.error('Errore invio email spedizione:', err)
+    console.error('Errore invio email:', err)
   }
 }

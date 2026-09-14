@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 import { inviaNotificaPronto, inviaNotificaDocumento, eliminaMessaggio } from '@/lib/telegram'
-import { inviaEmailSpedizione } from '@/lib/email'
+import { inviaEmailStato } from '@/lib/email'
 
 // PATCH /api/ordini/[id] — aggiorna stato o documenti
 export async function PATCH(request, { params }) {
@@ -152,12 +152,12 @@ export async function PATCH(request, { params }) {
 
     if (error) throw error
 
-    // Invia email al cliente quando l'ordine viene spedito
-    if (stato === 'spedito' && ordine.email_cliente) {
+    // Invia email al cliente per i cambi di stato rilevanti
+    if (['in_elaborazione', 'pronto_oggi', 'spedito'].includes(stato) && ordine.email_cliente) {
       try {
-        await inviaEmailSpedizione(ordine)
+        await inviaEmailStato(ordine, stato)
       } catch (emailErr) {
-        console.error('Errore invio email spedizione:', emailErr)
+        console.error('Errore invio email:', emailErr)
       }
     }
 
