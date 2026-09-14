@@ -18,6 +18,7 @@ export default function AdminLayout({ children }) {
   const navItems = [
     { href: '/admin', label: 'Ordini', icon: '📋' },
     { href: '/admin/nuovo-ordine', label: 'Nuovo Ordine', icon: '➕' },
+    { href: '/admin/statistiche', label: 'Statistiche', icon: '📊' },
     { href: '/admin/impostazioni', label: 'Impostazioni', icon: '⚙️' },
   ]
 

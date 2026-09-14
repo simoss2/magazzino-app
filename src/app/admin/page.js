@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 const TIPI_PRODOTTO = ['Box doccia', 'Walk-in', 'Piatto doccia', 'Altro']
 
@@ -107,38 +108,84 @@ function docMancanti(ordine) {
 }
 
 export default function AdminDashboard() {
-  const [ordini, setOrdini] = useState([])
+  const [tuttiOrdini, setTuttiOrdini] = useState([])
   const [caricamento, setCaricamento] = useState(true)
   const [filtroStato, setFiltroStato] = useState('tutti')
+  const [filtroData, setFiltroData] = useState('tutti')
   const [aggiornamento, setAggiornamento] = useState(null)
   const [ricerca, setRicerca] = useState('')
-  const [contatori, setContatori] = useState({ nuovo: 0, in_elaborazione: 0, pronto_oggi: 0, bollettato: 0, spedito: 0, sospeso: 0 })
+  const [errore, setErrore] = useState(null)
 
-  const caricaContatori = useCallback(async () => {
-    const res = await fetch('/api/ordini')
-    const data = await res.json()
-    if (Array.isArray(data)) {
-      setContatori({
-        nuovo:           data.filter(o => o.stato === 'nuovo').length,
-        in_elaborazione: data.filter(o => o.stato === 'in_elaborazione').length,
-        pronto_oggi:     data.filter(o => o.stato === 'pronto_oggi').length,
-        bollettato:      data.filter(o => o.stato === 'bollettato').length,
-        spedito:         data.filter(o => o.stato === 'spedito').length,
-        sospeso:         data.filter(o => o.stato === 'sospeso').length,
-      })
+  const caricaOrdini = useCallback(async () => {
+    try {
+      const res = await fetch('/api/ordini')
+      if (!res.ok) throw new Error('Errore server')
+      const data = await res.json()
+      if (!Array.isArray(data)) throw new Error('Risposta non valida')
+      setTuttiOrdini(data)
+      setCaricamento(false)
+      setErrore(null)
+    } catch {
+      setErrore('Errore di connessione — riprovo automaticamente')
+      setCaricamento(false)
     }
   }, [])
 
-  const caricaOrdini = useCallback(async () => {
-    const url = filtroStato === 'tutti' ? '/api/ordini' : `/api/ordini?stato=${filtroStato}`
-    const res = await fetch(url)
-    const data = await res.json()
-    setOrdini(data)
-    setCaricamento(false)
-    caricaContatori()
-  }, [filtroStato, caricaContatori])
+  useEffect(() => {
+    caricaOrdini()
+    const supabase = createSupabaseBrowserClient()
+    const channel = supabase
+      .channel('ordini-admin')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ordini' }, () => {
+        caricaOrdini()
+      })
+      .subscribe()
+    return () => supabase.removeChannel(channel)
+  }, [caricaOrdini])
 
-  useEffect(() => { caricaOrdini() }, [caricaOrdini])
+  const contatori = {
+    nuovo:           tuttiOrdini.filter(o => o.stato === 'nuovo').length,
+    in_elaborazione: tuttiOrdini.filter(o => o.stato === 'in_elaborazione').length,
+    pronto_oggi:     tuttiOrdini.filter(o => o.stato === 'pronto_oggi').length,
+    bollettato:      tuttiOrdini.filter(o => o.stato === 'bollettato').length,
+    spedito:         tuttiOrdini.filter(o => o.stato === 'spedito').length,
+    sospeso:         tuttiOrdini.filter(o => o.stato === 'sospeso').length,
+  }
+
+  function filtraPerData(ordini) {
+    const ora = new Date()
+    if (filtroData === 'oggi') {
+      return ordini.filter(o => new Date(o.created_at).toDateString() === ora.toDateString())
+    }
+    if (filtroData === 'settimana') {
+      const sette = new Date(ora); sette.setDate(ora.getDate() - 7)
+      return ordini.filter(o => new Date(o.created_at) >= sette)
+    }
+    if (filtroData === 'mese') {
+      const mese = new Date(ora); mese.setDate(ora.getDate() - 30)
+      return ordini.filter(o => new Date(o.created_at) >= mese)
+    }
+    return ordini
+  }
+
+  function esportaCSV() {
+    const righe = [
+      ['#', 'Nome', 'Cognome', 'Telefono', 'Portale', 'Corriere', 'Materiale', 'Stato', 'Note', 'Data'],
+      ...ordiniFiltrati.map(o => [
+        o.numero_ordine, o.nome_cliente, o.cognome_cliente,
+        o.telefono_cliente || '', o.portale || '', o.corriere || '',
+        `"${(o.materiale || '').replace(/"/g, '""')}"`,
+        o.stato, `"${(o.note || '').replace(/"/g, '""')}"`,
+        new Date(o.created_at).toLocaleDateString('it-IT'),
+      ])
+    ]
+    const csv = righe.map(r => r.join(',')).join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url
+    a.download = `ordini_${new Date().toISOString().slice(0,10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+  }
 
   async function segnaSpedito(id) {
     setAggiornamento(id)
@@ -173,18 +220,53 @@ export default function AdminDashboard() {
     setAggiornamento(null)
   }
 
-  const ordiniFiltrati = ordini
-    .filter(o => {
-      const q = ricerca.trim().toLowerCase()
-      if (!q) return true
-      return `${o.nome_cliente} ${o.cognome_cliente}`.toLowerCase().includes(q)
-    })
-    .sort((a, b) => (b.priorita ? 1 : 0) - (a.priorita ? 1 : 0))
+  const ordiniFiltrati = filtraPerData(
+    tuttiOrdini
+      .filter(o => filtroStato === 'tutti' || o.stato === filtroStato)
+      .filter(o => {
+        const q = ricerca.trim().toLowerCase()
+        if (!q) return true
+        return `${o.nome_cliente} ${o.cognome_cliente}`.toLowerCase().includes(q)
+      })
+  ).sort((a, b) => (b.priorita ? 1 : 0) - (a.priorita ? 1 : 0))
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      {errore && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <span className="text-sm text-red-700">⚠️ {errore}</span>
+          <button onClick={() => setErrore(null)} className="text-red-400 hover:text-red-600 ml-4">✕</button>
+        </div>
+      )}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-gray-800">Ordini</h1>
+        <div className="flex gap-2 flex-wrap items-center">
+          <button
+            onClick={esportaCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-green-400 hover:text-green-700 transition-colors"
+          >
+            ⬇️ Esporta CSV
+          </button>
+        </div>
+      </div>
+
+      {/* Filtro per data */}
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {[['tutti','Tutti'],['oggi','Oggi'],['settimana','Settimana'],['mese','Mese']].map(([v, l]) => (
+          <button
+            key={v}
+            onClick={() => setFiltroData(v)}
+            className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors border ${
+              filtroData === v ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+            }`}
+          >
+            {l}
+          </button>
+        ))}
+        <span className="text-xs text-gray-400 self-center">{ordiniFiltrati.length} ordini</span>
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2 flex-wrap">
           {['tutti', 'nuovo', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito', 'sospeso'].map(s => (
             <button
@@ -207,6 +289,7 @@ export default function AdminDashboard() {
             </button>
           ))}
         </div>
+      </div>
       </div>
 
       <div className="relative mb-5">

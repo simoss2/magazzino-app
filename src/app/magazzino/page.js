@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 const BADGE = {
   nuovo:          'bg-purple-100 text-purple-800 border-purple-200',
@@ -22,18 +23,33 @@ export default function MagazzinoPage() {
   const [ordini, setOrdini] = useState([])
   const [caricamento, setCaricamento] = useState(true)
   const [sezioneAttiva, setSezioneAttiva] = useState('nuovo')
+  const [errore, setErrore] = useState(null)
 
   const caricaOrdini = useCallback(async () => {
-    const res = await fetch('/api/ordini')
-    const data = await res.json()
-    setOrdini(Array.isArray(data) ? data.filter(o => o.stato !== 'sospeso') : [])
-    setCaricamento(false)
+    try {
+      const res = await fetch('/api/ordini')
+      if (!res.ok) throw new Error('Errore server')
+      const data = await res.json()
+      if (!Array.isArray(data)) throw new Error('Risposta non valida')
+      setOrdini(data.filter(o => o.stato !== 'sospeso'))
+      setCaricamento(false)
+      setErrore(null)
+    } catch {
+      setErrore('Errore di connessione')
+      setCaricamento(false)
+    }
   }, [])
 
   useEffect(() => {
     caricaOrdini()
-    const interval = setInterval(caricaOrdini, 5000)
-    return () => clearInterval(interval)
+    const supabase = createSupabaseBrowserClient()
+    const channel = supabase
+      .channel('ordini-magazzino')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ordini' }, () => {
+        caricaOrdini()
+      })
+      .subscribe()
+    return () => supabase.removeChannel(channel)
   }, [caricaOrdini])
 
   async function aggiornaStato(id, stato, giorni_attesa) {
@@ -64,6 +80,12 @@ export default function MagazzinoPage() {
 
   return (
     <div>
+      {errore && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <span className="text-sm text-red-700">⚠️ {errore} — ricarica la pagina</span>
+          <button onClick={() => setErrore(null)} className="text-red-400 hover:text-red-600 ml-4">✕</button>
+        </div>
+      )}
       {/* Contatori / Tab */}
       <div className="grid grid-cols-5 gap-2 mb-6">
         <StatCard
