@@ -12,7 +12,7 @@ export async function GET(request) {
     const to = searchParams.get('to')
 
     // Diagnostica env vars
-    const resendKey = process.env.RESEND_API_KEY
+    const resendKey = process.env.RESEND_KEY_NEW || process.env.RESEND_API_KEY
 
     if (!resendKey) {
       return NextResponse.json({ error: 'RESEND_API_KEY non trovata nelle env vars' }, { status: 500 })
