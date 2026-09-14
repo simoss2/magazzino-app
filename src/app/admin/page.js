@@ -290,7 +290,6 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
-      </div>
 
       <div className="relative mb-5">
         <input
