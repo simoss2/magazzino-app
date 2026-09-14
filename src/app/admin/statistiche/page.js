@@ -193,10 +193,24 @@ export default function StatistichePage() {
               </p>
             </div>
           )}
-          <div className="space-y-3">
-            {prodottiSorted.length > 0 ? prodottiSorted.map(([nome, qty]) => (
-              <BarRow key={nome} label={nome} valore={qty} max={maxProdotto} color="bg-teal-400" />
-            )) : (
+          <div className="space-y-2">
+            {prodottiSorted.length > 0 ? prodottiSorted.map(([nome, qty], i) => {
+              const pct = Math.round((qty / maxProdotto) * 100)
+              return (
+                <div key={nome} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <span className="text-xs font-bold text-gray-400 mt-0.5 shrink-0">#{i + 1}</span>
+                      <p className="text-sm font-medium text-gray-800 leading-snug">{nome}</p>
+                    </div>
+                    <span className="shrink-0 text-lg font-bold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-2.5 py-0.5 text-sm">{qty} pz</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="h-1.5 rounded-full bg-teal-400" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            }) : (
               <p className="text-sm text-gray-400">Nessun prodotto trovato per "{ricercaProdotto}"</p>
             )}
           </div>
