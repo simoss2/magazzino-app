@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 
 // POST /api/upload — carica PDF su Supabase Storage
 export async function POST(request) {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const formData = await request.formData()
     const file = formData.get('file')
-    const tipo = formData.get('tipo') // 'bolla' o 'distinta'
+    const tipo = formData.get('tipo')
+
+    // Limite 10MB
+    if (file?.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File troppo grande (max 10MB)' }, { status: 400 })
+    } // 'bolla' o 'distinta'
 
     if (!file || !tipo) {
       return NextResponse.json({ error: 'File o tipo mancante' }, { status: 400 })

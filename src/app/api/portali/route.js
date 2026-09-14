@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 
 // GET /api/portali — lista portali
 export async function GET() {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase.from('portali').select('*').order('nome')
     if (error) throw error
@@ -16,6 +19,9 @@ export async function GET() {
 // POST /api/portali — crea nuovo portale
 export async function POST(request) {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const { nome } = await request.json()
     if (!nome?.trim()) {
       return NextResponse.json({ error: 'Nome obbligatorio' }, { status: 400 })

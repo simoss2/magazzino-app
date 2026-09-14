@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 
 // GET /api/impostazioni
 export async function GET() {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase.from('impostazioni').select('*')
     if (error) throw error
@@ -18,6 +21,9 @@ export async function GET() {
 // PUT /api/impostazioni
 export async function PUT(request) {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const body = await request.json()
     const supabase = createSupabaseAdminClient()
 

@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 import { inviaNotificaPronto, inviaNotificaDocumento, eliminaMessaggio } from '@/lib/telegram'
 
 // PATCH /api/ordini/[id] — aggiorna stato o documenti
 export async function PATCH(request, { params }) {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const { id } = params
     const body = await request.json()
     const { stato, bolla_url, distinta_url, dettagli_url, nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, priorita } = body
@@ -155,6 +158,9 @@ export async function PATCH(request, { params }) {
 // DELETE /api/ordini/[id] — elimina ordine e messaggi Telegram collegati
 export async function DELETE(request, { params }) {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const { id } = params
     const supabase = createSupabaseAdminClient()
 

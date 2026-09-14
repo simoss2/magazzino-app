@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 import { inviaNotificaNuovoOrdine } from '@/lib/telegram'
 
 // GET /api/ordini — lista tutti gli ordini
 export async function GET(request) {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const supabase = createSupabaseAdminClient()
     const { searchParams } = new URL(request.url)
     const stato = searchParams.get('stato')
@@ -28,6 +31,9 @@ export async function GET(request) {
 // POST /api/ordini — crea nuovo ordine
 export async function POST(request) {
   try {
+    const { data: { user } } = await createSupabaseServerClient().auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
     const body = await request.json()
     const { nome_cliente, cognome_cliente, telefono_cliente, portale, corriere, materiale, note, bolla_url, distinta_url, dettagli_url } = body
 
