@@ -271,7 +271,7 @@ export default function AdminDashboard() {
           {['tutti', 'nuovo', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito', 'sospeso'].map(s => (
             <button
               key={s}
-              onClick={() => { setFiltroStato(s); setCaricamento(true) }}
+              onClick={() => setFiltroStato(s)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filtroStato === s
                   ? 'bg-blue-600 text-white'
