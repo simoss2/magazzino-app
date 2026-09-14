@@ -153,11 +153,14 @@ export async function PATCH(request, { params }) {
     if (error) throw error
 
     // Invia email al cliente per i cambi di stato rilevanti
+    console.log('[EMAIL DEBUG] stato:', stato, '| email_cliente:', ordine.email_cliente || 'NULL')
     if (['in_elaborazione', 'pronto_oggi', 'spedito'].includes(stato) && ordine.email_cliente) {
+      console.log('[EMAIL DEBUG] chiamo inviaEmailStato...')
       try {
         await inviaEmailStato(ordine, stato)
+        console.log('[EMAIL DEBUG] inviaEmailStato completato')
       } catch (emailErr) {
-        console.error('Errore invio email:', emailErr)
+        console.error('[EMAIL DEBUG] Errore:', emailErr)
       }
     }
 
