@@ -31,10 +31,11 @@ export async function GET(request) {
     })
 
     return NextResponse.json({
-      success: true,
+      success: !result?.error,
       resend_id: result?.data?.id,
       resend_error: result?.error,
       inviato_a: to,
+      api_key_prefix: resendKey.slice(0, 10) + '...',
     })
   } catch (err) {
     return NextResponse.json({
