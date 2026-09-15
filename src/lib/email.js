@@ -164,8 +164,7 @@ function buildEmail(ordine, stato) {
     <!-- LOGO -->
     <tr>
       <td style="padding:36px 40px 0;text-align:center;">
-        <img src="${LOGO_URL}" alt="Doccia Store" width="240" style="display:block;margin:0 auto 12px;height:auto;" />
-        <p style="margin:0;font-size:15px;color:#5a4030;font-family:Georgia,serif;letter-spacing:.3px;">${c.fTag}</p>
+        <img src="${LOGO_URL}" alt="Doccia Store" width="240" style="display:block;margin:0 auto;height:auto;" />
         <div style="height:1px;background:#e0d8ce;margin:22px 0 0;"></div>
       </td>
     </tr>
@@ -284,7 +283,6 @@ function buildEmail(ordine, stato) {
     <!-- FOOTER -->
     <tr>
       <td style="padding:16px 28px 28px;text-align:center;border-top:1px solid #e0d8ce;">
-        <p style="margin:0 0 10px;font-size:12px;color:#8a6a50;font-family:Georgia,serif;font-style:italic;">${c.fTag}</p>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
           <tr>
             <td style="text-align:right;padding-right:10px;">
