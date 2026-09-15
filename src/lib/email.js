@@ -36,7 +36,7 @@ function formatData(isoString) {
   return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-const LOGO_URL = 'https://magazzino-app-git-main-simo02.vercel.app/logo-doccia-store.png'
+const LOGO_URL = 'https://raw.githubusercontent.com/simoss2/magazzino-app/main/public/logo-doccia-store.png'
 
 const CONTENUTI = {
   in_elaborazione: {
