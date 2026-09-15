@@ -149,17 +149,23 @@ function buildEmail(ordine, stato) {
   const portaleVal = ordine.portale || '—'
   const numeroOrdine = ordine.numero_ordine ? `#${String(ordine.numero_ordine).padStart(5, '0')}` : '—'
 
-  // Subject personalizzato con nome e cognome cliente
+  // Subject con struttura diversa per ogni stato così Gmail non li raggruppa
   const nomeCompleto = [ordine.nome_cliente, ordine.cognome_cliente].filter(Boolean).join(' ')
-  const subjectBase = {
-    in_elaborazione: { it: 'il tuo ordine Doccia Store è in fase di preparazione 📦', fr: 'votre commande Doccia Store est en cours de préparation 📦' },
-    pronto_oggi:     { it: 'il tuo ordine Doccia Store è pronto per la spedizione ✅', fr: 'votre commande Doccia Store est prête à expédier ✅' },
-    spedito:         { it: 'il tuo ordine Doccia Store è stato spedito 🚚',           fr: 'votre commande Doccia Store a été expédiée 🚚' },
+  const subjectFormats = {
+    in_elaborazione: {
+      it: n => n ? `📦 Ordine in preparazione · DocciaStore · ${n}` : `📦 Il tuo ordine DocciaStore è in preparazione`,
+      fr: n => n ? `📦 Commande en préparation · DocciaStore · ${n}` : `📦 Votre commande DocciaStore est en préparation`,
+    },
+    pronto_oggi: {
+      it: n => n ? `✅ Pronto per la spedizione! · ${n} · DocciaStore` : `✅ Il tuo ordine DocciaStore è pronto`,
+      fr: n => n ? `✅ Prête à expédier! · ${n} · DocciaStore` : `✅ Votre commande DocciaStore est prête`,
+    },
+    spedito: {
+      it: n => n ? `🚚 ${n}, il tuo pacco DocciaStore è in partenza!` : `🚚 Il tuo ordine DocciaStore è stato spedito`,
+      fr: n => n ? `🚚 ${n}, votre colis DocciaStore est en route!` : `🚚 Votre commande DocciaStore a été expédiée`,
+    },
   }
-  const prefix = lang === 'fr' ? `Cher(e) ${nomeCompleto},` : `Gentile ${nomeCompleto},`
-  const subject = nomeCompleto
-    ? `${prefix} ${subjectBase[stato][lang]}`
-    : c.subject
+  const subject = subjectFormats[stato][lang](nomeCompleto)
 
   const html = `<!DOCTYPE html>
 <html lang="${lang}">
