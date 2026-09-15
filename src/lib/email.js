@@ -169,12 +169,8 @@ function buildEmail(ordine, stato) {
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background:#ede8e0;font-family:Arial,sans-serif;">
-<!-- Preheader: testo nascosto che impedisce a Gmail di collassare il contenuto -->
-<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">${c.subject} — DocciaStore&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
-<table width="100%" cellpadding="0" cellspacing="0" class="email-wrap" style="background:#ede8e0;padding:32px 0;">
-  <tr><td align="center">
-  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:4px;overflow:hidden;">
+<body bgcolor="#ede8e0" style="margin:0;padding:0;background:#ede8e0;font-family:Arial,sans-serif;">
+<table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" width="600" bgcolor="#ffffff" style="max-width:600px;width:100%;background:#ffffff;margin:32px auto;border-radius:4px;">
 
     <!-- HEADER + BADGE + TITOLO + INTRO — tutto in un unico blocco per evitare collasso Gmail -->
     <tr>
@@ -325,19 +321,19 @@ function buildEmail(ordine, stato) {
     </tr>
 
   </table>
-  </td></tr>
-</table>
 </body>
 </html>`
 
-  return { subject: c.subject, html }
+  const text = `${c.badge} — DocciaStore\n\n${c.titolo.replace(/<br>/g, '\n')}\n\n${c.intro.replace(/<br>/g, '\n')}\n\n${c.grazie}\n\nN° ordine: ${numeroOrdine}\nData: ${dataOrdine}\nPortale: ${portaleVal}\nCorriere: ${corriereVal}\n\nProdotti:\n${righe.join('\n')}\n\n---\ndocciastoreweb@gmail.com\n${c.orari}\nhttps://docciastore.com`
+
+  return { subject: c.subject, html, text }
 }
 
 export async function inviaEmailStato(ordine, stato) {
   if (!ordine.email_cliente) return
   if (!CONTENUTI[stato]) return
 
-  const { subject, html } = buildEmail(ordine, stato)
+  const { subject, html, text } = buildEmail(ordine, stato)
 
   try {
     const resend = await getResend()
@@ -346,6 +342,7 @@ export async function inviaEmailStato(ordine, stato) {
       to: ordine.email_cliente,
       subject,
       html,
+      text,
     })
     console.log(`Email stato "${stato}" inviata a:`, ordine.email_cliente)
   } catch (err) {
