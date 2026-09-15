@@ -149,6 +149,18 @@ function buildEmail(ordine, stato) {
   const portaleVal = ordine.portale || '—'
   const numeroOrdine = ordine.numero_ordine ? `#${String(ordine.numero_ordine).padStart(5, '0')}` : '—'
 
+  // Subject personalizzato con nome e cognome cliente
+  const nomeCompleto = [ordine.nome_cliente, ordine.cognome_cliente].filter(Boolean).join(' ')
+  const subjectBase = {
+    in_elaborazione: { it: 'il tuo ordine Doccia Store è in fase di preparazione 📦', fr: 'votre commande Doccia Store est en cours de préparation 📦' },
+    pronto_oggi:     { it: 'il tuo ordine Doccia Store è pronto per la spedizione ✅', fr: 'votre commande Doccia Store est prête à expédier ✅' },
+    spedito:         { it: 'il tuo ordine Doccia Store è stato spedito 🚚',           fr: 'votre commande Doccia Store a été expédiée 🚚' },
+  }
+  const prefix = lang === 'fr' ? `Cher(e) ${nomeCompleto},` : `Gentile ${nomeCompleto},`
+  const subject = nomeCompleto
+    ? `${prefix} ${subjectBase[stato][lang]}`
+    : c.subject
+
   const html = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
@@ -326,7 +338,7 @@ function buildEmail(ordine, stato) {
 
   const text = `${c.badge} — DocciaStore\n\n${c.titolo.replace(/<br>/g, '\n')}\n\n${c.intro.replace(/<br>/g, '\n')}\n\n${c.grazie}\n\nN° ordine: ${numeroOrdine}\nData: ${dataOrdine}\nPortale: ${portaleVal}\nCorriere: ${corriereVal}\n\nProdotti:\n${righe.join('\n')}\n\n---\ndocciastoreweb@gmail.com\n${c.orari}\nhttps://docciastore.com`
 
-  return { subject: c.subject, html, text }
+  return { subject, html, text }
 }
 
 export async function inviaEmailStato(ordine, stato) {
