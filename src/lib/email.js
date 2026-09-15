@@ -194,10 +194,15 @@ function buildEmail(ordine, stato) {
     <!-- BADGE + TITOLO + INTRO -->
     <tr>
       <td class="email-body" style="padding:26px 40px 22px;text-align:center;">
-        <div style="display:inline-block;background:#3d1e08;color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;padding:8px 24px;border-radius:50px;font-family:Arial,sans-serif;margin-bottom:22px;">${c.badge}</div>
-        <h1 style="margin:0 0 18px;font-size:26px;color:#2a1206;font-family:Georgia,serif;font-weight:normal;line-height:1.35;">${c.titolo}</h1>
+        <!-- badge come table per evitare collasso su mobile -->
+        <table cellpadding="0" cellspacing="0" style="margin:0 auto 22px;">
+          <tr>
+            <td style="background:#3d1e08;color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;padding:8px 24px;border-radius:50px;font-family:Arial,sans-serif;">${c.badge}</td>
+          </tr>
+        </table>
+        <p style="margin:0 0 18px;font-size:26px;color:#2a1206;font-family:Georgia,serif;font-weight:normal;line-height:1.35;">${c.titolo}</p>
         <p style="margin:0;font-size:14px;color:#5a4030;line-height:1.75;font-family:Arial,sans-serif;">${c.intro}</p>
-        <div style="height:1px;background:#e0d8ce;margin:20px 0;"></div>
+        <table cellpadding="0" cellspacing="0" width="100%" style="margin:20px 0;"><tr><td style="height:1px;background:#e0d8ce;"></td></tr></table>
         <p style="margin:0;font-size:13px;color:#8a6a50;font-family:Georgia,serif;font-style:italic;">${c.grazie}</p>
       </td>
     </tr>
