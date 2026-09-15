@@ -1,6 +1,16 @@
 import { Resend } from 'resend'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 
-const resend = new Resend(process.env.RESEND_KEY_NEW || process.env.RESEND_API_KEY)
+async function getResend() {
+  const supabase = createSupabaseAdminClient()
+  const { data } = await supabase
+    .from('impostazioni')
+    .select('valore')
+    .eq('chiave', 'resend_api_key')
+    .single()
+  if (!data?.valore) throw new Error('Resend API key non trovata in impostazioni')
+  return new Resend(data.valore)
+}
 
 const TRADUZIONI_FR = {
   'Box doccia':    'Cabine de douche',
@@ -199,6 +209,7 @@ export async function inviaEmailStato(ordine, stato) {
   const { subject, html } = buildEmail(ordine, stato)
 
   try {
+    const resend = await getResend()
     await resend.emails.send({
       from: 'Doccia Store <ordini@docciastore.com>',
       to: ordine.email_cliente,

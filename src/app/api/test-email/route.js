@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
 import { Resend } from 'resend'
 
-// GET /api/test-email — test diretto invio email via Resend
 export async function GET(request) {
   try {
     const { data: { user } } = await createSupabaseServerClient().auth.getUser()
@@ -11,28 +10,23 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const to = searchParams.get('to')
 
-    // Diagnostica env vars
-    const keyNew = process.env.RESEND_KEY_NEW
-    const keyOld = process.env.RESEND_API_KEY
-    const resendKey = keyNew || keyOld
+    // Legge chiave da Supabase
+    const supabase = createSupabaseAdminClient()
+    const { data: imp } = await supabase
+      .from('impostazioni')
+      .select('valore')
+      .eq('chiave', 'resend_api_key')
+      .single()
 
-    if (!resendKey) {
-      return NextResponse.json({ error: 'Nessuna chiave Resend trovata' }, { status: 500 })
+    if (!imp?.valore) {
+      return NextResponse.json({ error: 'resend_api_key non trovata in impostazioni Supabase' }, { status: 500 })
     }
-
-    const tutteLeVars = Object.keys(process.env)
-      .filter(k => k.toLowerCase().includes('resend'))
 
     if (!to) {
-      return NextResponse.json({
-        RESEND_KEY_NEW: keyNew ? keyNew.slice(0, 12) + '...' : 'NON TROVATA',
-        RESEND_API_KEY: keyOld ? keyOld.slice(0, 12) + '...' : 'NON TROVATA',
-        usa: keyNew ? 'RESEND_KEY_NEW' : 'RESEND_API_KEY',
-        nomi_variabili_resend: tutteLeVars,
-      })
+      return NextResponse.json({ resend_api_key: imp.valore.slice(0, 12) + '...', status: 'trovata in Supabase' })
     }
 
-    const resend = new Resend(resendKey)
+    const resend = new Resend(imp.valore)
     const result = await resend.emails.send({
       from: 'Doccia Store <ordini@docciastore.com>',
       to,
@@ -45,13 +39,8 @@ export async function GET(request) {
       resend_id: result?.data?.id,
       resend_error: result?.error,
       inviato_a: to,
-      variabile_usata: keyNew ? 'RESEND_KEY_NEW' : 'RESEND_API_KEY',
-      api_key_prefix: resendKey.slice(0, 12) + '...',
     })
   } catch (err) {
-    return NextResponse.json({
-      success: false,
-      errore: err.message,
-    }, { status: 500 })
+    return NextResponse.json({ success: false, errore: err.message }, { status: 500 })
   }
 }
