@@ -161,11 +161,20 @@ function buildEmail(ordine, stato) {
   <tr><td align="center">
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:4px;overflow:hidden;">
 
-    <!-- LOGO -->
+    <!-- HEADER TESTUALE -->
     <tr>
-      <td style="padding:36px 40px 0;text-align:center;">
-        <img src="${LOGO_URL}" alt="Doccia Store" width="240" style="display:block;margin:0 auto;height:auto;" />
-        <div style="height:1px;background:#e0d8ce;margin:22px 0 0;"></div>
+      <td style="padding:40px 40px 0;text-align:center;">
+        <!-- goccia -->
+        <div style="width:16px;height:20px;background:#3d1e08;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;margin:0 auto 14px;"></div>
+        <!-- wordmark -->
+        <p style="margin:0;font-size:30px;font-family:Georgia,'Times New Roman',serif;color:#3d1e08;letter-spacing:1px;font-weight:normal;">
+          Doccia<span style="font-weight:bold;">Store</span>
+        </p>
+        <!-- tagline -->
+        <p style="margin:7px 0 0;font-size:12px;color:#9a7a60;font-family:Georgia,serif;font-style:italic;letter-spacing:1.5px;text-transform:uppercase;">
+          ${lang === 'fr' ? 'Votre pause dans le monde' : 'La tua pausa dal mondo'}
+        </p>
+        <div style="height:1px;background:#e0d8ce;margin:24px 0 0;"></div>
       </td>
     </tr>
 
