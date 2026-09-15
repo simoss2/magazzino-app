@@ -332,3 +332,5 @@ export async function inviaEmailStato(ordine, stato) {
     console.error('Errore invio email:', err)
   }
 }
+
+
