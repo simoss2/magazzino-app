@@ -30,141 +30,91 @@ function traduciRigaFR(riga) {
   return r
 }
 
-function emailTemplate({ titolo, saluto, intro, prodottiHtml, chiusura, firma, banner, isFrancia }) {
-  return `<!DOCTYPE html>
-<html lang="${isFrancia ? 'fr' : 'it'}">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${titolo}</title>
-</head>
-<body style="margin:0;padding:0;background:#f5f0eb;font-family:Georgia,serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:40px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-
-        <!-- Header -->
-        <tr>
-          <td style="background:#3d1e08;border-radius:12px 12px 0 0;padding:32px 40px;text-align:center;">
-            <p style="margin:0 0 4px;font-size:11px;letter-spacing:3px;color:#c9956a;text-transform:uppercase;font-family:Arial,sans-serif;">
-              ${isFrancia ? 'Douche & Design' : 'Doccia & Design'}
-            </p>
-            <h1 style="margin:0;font-size:28px;color:#ffffff;font-family:Georgia,serif;font-weight:normal;letter-spacing:1px;">
-              Doccia Store
-            </h1>
-            <div style="width:40px;height:2px;background:#c9956a;margin:12px auto 0;"></div>
-          </td>
-        </tr>
-
-        <!-- Banner spedizione -->
-        <tr>
-          <td style="background:#c9956a;padding:14px 40px;text-align:center;">
-            <p style="margin:0;color:#3d1e08;font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;font-family:Arial,sans-serif;">
-              ${banner}
-            </p>
-          </td>
-        </tr>
-
-        <!-- Body -->
-        <tr>
-          <td style="background:#ffffff;padding:40px;">
-            <p style="margin:0 0 20px;font-size:16px;color:#3d1e08;">${saluto}</p>
-            <p style="margin:0 0 28px;font-size:15px;color:#5a4030;line-height:1.7;">${intro}</p>
-
-            <!-- Prodotti -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-              <tr>
-                <td style="background:#f9f4ef;border-left:3px solid #c9956a;border-radius:0 8px 8px 0;padding:20px 24px;">
-                  <p style="margin:0 0 12px;font-size:11px;letter-spacing:2px;color:#c9956a;text-transform:uppercase;font-family:Arial,sans-serif;">
-                    ${isFrancia ? 'Articles commandés' : 'Articoli ordinati'}
-                  </p>
-                  ${prodottiHtml}
-                </td>
-              </tr>
-            </table>
-
-            <p style="margin:0 0 28px;font-size:15px;color:#5a4030;line-height:1.7;">${chiusura}</p>
-
-            <!-- Contatti -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e8ddd5;padding-top:24px;margin-top:8px;">
-              <tr>
-                <td>
-                  <p style="margin:0 0 8px;font-size:11px;letter-spacing:2px;color:#c9956a;text-transform:uppercase;font-family:Arial,sans-serif;">
-                    ${isFrancia ? 'Besoin d\'aide ?' : 'Hai bisogno di aiuto?'}
-                  </p>
-                  <p style="margin:0;font-size:14px;color:#5a4030;line-height:1.8;">
-                    📧 <a href="mailto:docciastoreweb@gmail.com" style="color:#c9956a;text-decoration:none;">docciastoreweb@gmail.com</a>
-                  </p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Footer -->
-        <tr>
-          <td style="background:#3d1e08;border-radius:0 0 12px 12px;padding:24px 40px;text-align:center;">
-            <p style="margin:0 0 6px;font-size:13px;color:#c9956a;font-family:Georgia,serif;">${firma}</p>
-            <p style="margin:0;font-size:11px;color:#8a6a50;font-family:Arial,sans-serif;">
-              © ${new Date().getFullYear()} Doccia Store · docciastore.com
-            </p>
-          </td>
-        </tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
+function formatData(isoString) {
+  if (!isoString) return ''
+  const d = new Date(isoString)
+  return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
 }
+
+const LOGO_URL = 'https://magazzino-app-git-main-simo02.vercel.app/logo-doccia-store.png'
 
 const CONTENUTI = {
   in_elaborazione: {
     it: {
-      banner: '📦 Il tuo ordine è in preparazione',
-      titolo: 'Il tuo ordine è in preparazione — Doccia Store',
       subject: 'Il tuo ordine Doccia Store è in preparazione 📦',
-      intro: `Abbiamo preso in carico il Suo ordine e il nostro team è al lavoro per prepararlo. Di seguito il riepilogo degli articoli:`,
-      chiusura: `La aggiorneremo non appena l'ordine sarà pronto per la spedizione. Per qualsiasi informazione, non esiti a contattarci.`,
+      badge: 'IN PREPARAZIONE',
+      titolo: 'Il tuo ordine è<br>in preparazione',
+      intro: 'Ciao,<br>stiamo preparando con cura il tuo ordine.<br>Riceverai un\'email appena sarà affidato al corriere.',
+      grazie: 'Grazie per aver scelto DocciaStore.',
+      lProd: 'Prodotti acquistati', lPortale: "Portale d'acquisto", lCorriere: 'Corriere',
+      lServ: 'Servizio clienti', txtServ: 'Per qualsiasi domanda sul tuo ordine siamo a tua disposizione.',
+      lCont: 'Contattaci', orari: 'Rispondiamo h24, tutti i giorni.',
+      cta: 'Visita DocciaStore.com', ctaSub: 'Scopri altre soluzioni per il tuo benessere quotidiano.',
+      fTag: 'La tua pausa dal mondo',
     },
     fr: {
-      banner: '📦 Votre commande est en cours de préparation',
-      titolo: 'Votre commande est en cours de préparation — Doccia Store',
       subject: 'Votre commande Doccia Store est en cours de préparation 📦',
-      intro: `Nous avons bien pris en charge votre commande et notre équipe travaille à sa préparation. Voici le récapitulatif de vos articles :`,
-      chiusura: `Nous vous tiendrons informé(e) dès que votre commande sera prête à être expédiée. N'hésitez pas à nous contacter pour toute question.`,
+      badge: 'EN PRÉPARATION',
+      titolo: 'Votre commande est<br>en préparation',
+      intro: "Bonjour,<br>nous préparons votre commande avec soin.<br>Vous recevrez un e-mail dès qu'elle sera confiée au transporteur.",
+      grazie: "Merci d'avoir choisi DocciaStore.",
+      lProd: 'Produits achetés', lPortale: "Plateforme d'achat", lCorriere: 'Transporteur',
+      lServ: 'Service client', txtServ: 'Pour toute question sur votre commande, nous sommes à votre disposition.',
+      lCont: 'Nous contacter', orari: 'Nous répondons h24, tous les jours.',
+      cta: 'Visiter DocciaStore.com', ctaSub: "Découvrez d'autres solutions pour votre bien-être.",
+      fTag: 'Votre pause dans le monde',
     },
   },
   pronto_oggi: {
     it: {
-      banner: '✅ Il tuo ordine è pronto per la spedizione',
-      titolo: 'Il tuo ordine è pronto — Doccia Store',
       subject: 'Il tuo ordine Doccia Store è pronto ✅',
-      intro: `Ottima notizia! Il Suo ordine è stato preparato ed è <strong style="color:#3d1e08;">pronto per essere spedito</strong>. Di seguito il riepilogo degli articoli:`,
-      chiusura: `Riceverà a breve una conferma di spedizione con il codice di tracciamento. Per qualsiasi informazione, siamo a Sua disposizione.`,
+      badge: 'PRONTO PER LA SPEDIZIONE',
+      titolo: 'Il tuo ordine è pronto!',
+      intro: 'Ciao,<br>ottima notizia: il tuo ordine è pronto<br>e verrà affidato al corriere a breve.',
+      grazie: 'Grazie per aver scelto DocciaStore.',
+      lProd: 'Prodotti acquistati', lPortale: "Portale d'acquisto", lCorriere: 'Corriere',
+      lServ: 'Servizio clienti', txtServ: 'Per qualsiasi domanda sul tuo ordine siamo a tua disposizione.',
+      lCont: 'Contattaci', orari: 'Rispondiamo h24, tutti i giorni.',
+      cta: 'Visita DocciaStore.com', ctaSub: 'Scopri altre soluzioni per il tuo benessere quotidiano.',
+      fTag: 'La tua pausa dal mondo',
     },
     fr: {
-      banner: '✅ Votre commande est prête à être expédiée',
-      titolo: 'Votre commande est prête — Doccia Store',
       subject: 'Votre commande Doccia Store est prête ✅',
-      intro: `Bonne nouvelle ! Votre commande a été préparée et est <strong style="color:#3d1e08;">prête à être expédiée</strong>. Voici le récapitulatif de vos articles :`,
-      chiusura: `Vous recevrez prochainement une confirmation d'expédition avec le numéro de suivi. Nous restons à votre disposition.`,
+      badge: 'PRÊTE À EXPÉDIER',
+      titolo: 'Votre commande est prête !',
+      intro: "Bonjour,<br>bonne nouvelle : votre commande est prête<br>et sera confiée au transporteur très prochainement.",
+      grazie: "Merci d'avoir choisi DocciaStore.",
+      lProd: 'Produits achetés', lPortale: "Plateforme d'achat", lCorriere: 'Transporteur',
+      lServ: 'Service client', txtServ: 'Pour toute question sur votre commande, nous sommes à votre disposition.',
+      lCont: 'Nous contacter', orari: 'Nous répondons h24, tous les jours.',
+      cta: 'Visiter DocciaStore.com', ctaSub: "Découvrez d'autres solutions pour votre bien-être.",
+      fTag: 'Votre pause dans le monde',
     },
   },
   spedito: {
     it: {
-      banner: '🚚 Il tuo ordine è in partenza!',
-      titolo: 'Il tuo ordine è stato spedito — Doccia Store',
       subject: 'Il tuo ordine Doccia Store è stato spedito 🚚',
-      intro: `Le comunichiamo con piacere che il Suo ordine è stato <strong style="color:#3d1e08;">spedito</strong> ed è in consegna. Di seguito il riepilogo degli articoli:`,
-      chiusura: `Riceverà il codice di tracciamento non appena disponibile. Per qualsiasi informazione, non esiti a contattarci — siamo sempre a Sua disposizione.`,
+      badge: 'IN PARTENZA',
+      titolo: 'Il tuo ordine è in partenza!',
+      intro: 'Ciao,<br>il tuo ordine è stato spedito ed è in consegna.<br>Riceverai il codice di tracciamento a breve.',
+      grazie: 'Grazie per aver scelto DocciaStore.',
+      lProd: 'Prodotti acquistati', lPortale: "Portale d'acquisto", lCorriere: 'Corriere',
+      lServ: 'Servizio clienti', txtServ: 'Per qualsiasi domanda sul tuo ordine siamo a tua disposizione.',
+      lCont: 'Contattaci', orari: 'Rispondiamo h24, tutti i giorni.',
+      cta: 'Visita DocciaStore.com', ctaSub: 'Scopri altre soluzioni per il tuo benessere quotidiano.',
+      fTag: 'La tua pausa dal mondo',
     },
     fr: {
-      banner: '🚚 Votre commande est en route !',
-      titolo: 'Votre commande a été expédiée — Doccia Store',
       subject: 'Votre commande Doccia Store a été expédiée 🚚',
-      intro: `Nous avons le plaisir de vous informer que votre commande a été <strong style="color:#3d1e08;">expédiée</strong> et est en cours de livraison. Voici le récapitulatif de vos articles :`,
-      chiusura: `Vous recevrez le numéro de suivi dès qu'il sera disponible. Pour toute question, n'hésitez pas à nous contacter — nous sommes à votre entière disposition.`,
+      badge: 'EN ROUTE',
+      titolo: 'Votre commande est en route !',
+      intro: "Bonjour,<br>votre commande a été expédiée et est en cours de livraison.<br>Vous recevrez le numéro de suivi très prochainement.",
+      grazie: "Merci d'avoir choisi DocciaStore.",
+      lProd: 'Produits achetés', lPortale: "Plateforme d'achat", lCorriere: 'Transporteur',
+      lServ: 'Service client', txtServ: 'Pour toute question sur votre commande, nous sommes à votre disposition.',
+      lCont: 'Nous contacter', orari: 'Nous répondons h24, tous les jours.',
+      cta: 'Visiter DocciaStore.com', ctaSub: "Découvrez d'autres solutions pour votre bien-être.",
+      fTag: 'Votre pause dans le monde',
     },
   },
 }
@@ -174,30 +124,191 @@ function buildEmail(ordine, stato) {
   const lang = isFrancia ? 'fr' : 'it'
   const c = CONTENUTI[stato][lang]
 
-  const prodottiHtml = ordine.materiale
-    .split('\n').filter(Boolean)
-    .map(r => {
-      const riga = isFrancia ? traduciRigaFR(r) : r
-      return `<p style="margin:0 0 6px;font-size:14px;color:#3d1e08;">• ${riga}</p>`
-    })
-    .join('')
+  const righe = (ordine.materiale || '').split('\n').filter(Boolean)
+  const nProdotti = righe.length
 
-  const saluto = isFrancia
-    ? `Cher(e) ${ordine.nome_cliente} ${ordine.cognome_cliente},`
-    : `Gentile ${ordine.nome_cliente} ${ordine.cognome_cliente},`
+  // Righe prodotti senza immagini
+  const prodottiHtml = righe.map((r, i) => {
+    const riga = isFrancia ? traduciRigaFR(r) : r
+    const borderBottom = i < righe.length - 1
+      ? 'border-bottom:1px solid #e0d8ce;'
+      : ''
+    return `
+      <tr>
+        <td style="padding:14px 18px;${borderBottom}">
+          <p style="margin:0;font-size:14px;font-weight:700;color:#2a1206;font-family:Arial,sans-serif;">${riga}</p>
+        </td>
+      </tr>`
+  }).join('')
 
-  const firma = isFrancia ? `Merci d'avoir choisi Doccia Store` : `Grazie per aver scelto Doccia Store`
+  const corriereVal = (stato === 'in_elaborazione' || !ordine.corriere)
+    ? (lang === 'fr' ? "En cours d'attribution" : 'In fase di assegnazione')
+    : ordine.corriere
 
-  const html = emailTemplate({
-    titolo: c.titolo,
-    saluto,
-    intro: c.intro,
-    prodottiHtml,
-    chiusura: c.chiusura,
-    firma,
-    banner: c.banner,
-    isFrancia,
-  })
+  const dataOrdine = formatData(ordine.created_at)
+  const portaleVal = ordine.portale || '—'
+  const numeroOrdine = ordine.numero_ordine ? `#${String(ordine.numero_ordine).padStart(5, '0')}` : '—'
+
+  const html = `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${c.subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#ede8e0;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#ede8e0;padding:32px 0;">
+  <tr><td align="center">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:4px;overflow:hidden;">
+
+    <!-- LOGO -->
+    <tr>
+      <td style="padding:36px 40px 0;text-align:center;">
+        <img src="${LOGO_URL}" alt="Doccia Store" width="240" style="display:block;margin:0 auto 12px;height:auto;" />
+        <p style="margin:0;font-size:15px;color:#5a4030;font-family:Georgia,serif;letter-spacing:.3px;">${c.fTag}</p>
+        <div style="height:1px;background:#e0d8ce;margin:22px 0 0;"></div>
+      </td>
+    </tr>
+
+    <!-- BADGE + TITOLO + INTRO -->
+    <tr>
+      <td style="padding:26px 40px 22px;text-align:center;">
+        <div style="display:inline-block;background:#3d1e08;color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;padding:8px 24px;border-radius:50px;font-family:Arial,sans-serif;margin-bottom:22px;">${c.badge}</div>
+        <h1 style="margin:0 0 18px;font-size:26px;color:#2a1206;font-family:Georgia,serif;font-weight:normal;line-height:1.35;">${c.titolo}</h1>
+        <p style="margin:0;font-size:14px;color:#5a4030;line-height:1.75;font-family:Arial,sans-serif;">${c.intro}</p>
+        <div style="height:1px;background:#e0d8ce;margin:20px 0;"></div>
+        <p style="margin:0;font-size:13px;color:#8a6a50;font-family:Georgia,serif;font-style:italic;">${c.grazie}</p>
+      </td>
+    </tr>
+
+    <!-- STATS: prodotti / portale / corriere -->
+    <tr>
+      <td style="padding:0 28px 22px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0d8ce;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:16px 14px;text-align:center;border-right:1px solid #e0d8ce;width:33%;">
+              <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:#3d1e08;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;">${c.lProd}</p>
+              <p style="margin:0;font-size:20px;color:#2a1206;font-family:Georgia,serif;">${nProdotti} <span style="font-size:12px;color:#5a4030;">${lang === 'fr' ? 'articles' : 'articoli'}</span></p>
+            </td>
+            <td style="padding:16px 14px;text-align:center;border-right:1px solid #e0d8ce;width:33%;">
+              <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:#3d1e08;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;">${c.lPortale}</p>
+              <p style="margin:0;font-size:13px;color:#2a1206;font-family:Georgia,serif;">${portaleVal}</p>
+            </td>
+            <td style="padding:16px 14px;text-align:center;width:33%;">
+              <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:#3d1e08;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;">${c.lCorriere}</p>
+              <p style="margin:0;font-size:12px;color:#7a5a40;font-family:Georgia,serif;font-style:italic;line-height:1.4;">${corriereVal}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- RIEPILOGO ORDINE (numero + data) -->
+    <tr>
+      <td style="padding:0 28px 22px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0d8ce;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:12px 18px;border-bottom:1px solid #e0d8ce;">
+              <p style="margin:0;font-size:10px;font-weight:700;color:#3d1e08;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;">
+                ${lang === 'fr' ? 'Récapitulatif commande' : 'Riepilogo ordine'}
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:14px 18px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:12px;color:#8a6a50;font-family:Arial,sans-serif;padding-bottom:6px;width:140px;">
+                    ${lang === 'fr' ? 'N° commande' : 'N° ordine'}
+                  </td>
+                  <td style="font-size:13px;color:#2a1206;font-family:Georgia,serif;font-weight:bold;padding-bottom:6px;">
+                    ${numeroOrdine}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;color:#8a6a50;font-family:Arial,sans-serif;">
+                    ${lang === 'fr' ? 'Date commande' : 'Data ordine'}
+                  </td>
+                  <td style="font-size:13px;color:#2a1206;font-family:Georgia,serif;">
+                    ${dataOrdine}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- PRODOTTI -->
+    <tr>
+      <td style="padding:0 28px 22px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0d8ce;border-radius:8px;overflow:hidden;">
+          ${prodottiHtml}
+        </table>
+      </td>
+    </tr>
+
+    <!-- CTA -->
+    <tr>
+      <td style="padding:0 28px 8px;text-align:center;">
+        <a href="https://docciastore.com" style="display:inline-block;background:#3d1e08;color:#ffffff;font-size:15px;font-family:Arial,sans-serif;font-weight:600;padding:15px 44px;border-radius:50px;text-decoration:none;">${c.cta} &#8594;</a>
+        <p style="margin:12px 0 18px;font-size:12px;color:#8a6a50;font-family:Arial,sans-serif;">${c.ctaSub}</p>
+      </td>
+    </tr>
+
+    <!-- DIVIDER -->
+    <tr><td style="padding:0 28px;"><div style="height:1px;background:#e0d8ce;"></div></td></tr>
+
+    <!-- SUPPORTO -->
+    <tr>
+      <td style="padding:20px 28px 22px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="width:50%;vertical-align:top;padding-right:16px;border-right:1px solid #e0d8ce;">
+              <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#2a1206;font-family:Arial,sans-serif;">${c.lServ}</p>
+              <p style="margin:0;font-size:12px;color:#8a6a50;font-family:Arial,sans-serif;line-height:1.6;">${c.txtServ}</p>
+            </td>
+            <td style="width:50%;vertical-align:top;padding-left:16px;">
+              <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#2a1206;font-family:Arial,sans-serif;">${c.lCont}</p>
+              <p style="margin:0 0 3px;font-size:12px;font-family:Arial,sans-serif;">
+                <a href="mailto:docciastoreweb@gmail.com" style="color:#3d1e08;text-decoration:none;font-weight:600;">docciastoreweb@gmail.com</a>
+              </p>
+              <p style="margin:0;font-size:11px;color:#8a6a50;font-family:Arial,sans-serif;">${c.orari}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td style="padding:16px 28px 28px;text-align:center;border-top:1px solid #e0d8ce;">
+        <p style="margin:0 0 10px;font-size:12px;color:#8a6a50;font-family:Georgia,serif;font-style:italic;">${c.fTag}</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+          <tr>
+            <td style="text-align:right;padding-right:10px;">
+              <div style="display:inline-block;height:1px;width:70px;background:#e0d8ce;vertical-align:middle;"></div>
+            </td>
+            <td style="text-align:center;width:20px;">
+              <div style="width:10px;height:13px;background:#3d1e08;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;margin:0 auto;"></div>
+            </td>
+            <td style="text-align:left;padding-left:10px;">
+              <div style="display:inline-block;height:1px;width:70px;background:#e0d8ce;vertical-align:middle;"></div>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:0;font-size:10px;letter-spacing:2.5px;color:#8a6a50;font-family:Arial,sans-serif;text-transform:uppercase;">
+          <a href="https://docciastore.com" style="color:#8a6a50;text-decoration:none;">DOCCIASTORE.COM</a>
+        </p>
+      </td>
+    </tr>
+
+  </table>
+  </td></tr>
+</table>
+</body>
+</html>`
 
   return { subject: c.subject, html }
 }
