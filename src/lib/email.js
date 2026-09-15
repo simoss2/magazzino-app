@@ -155,15 +155,28 @@ function buildEmail(ordine, stato) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${c.subject}</title>
+  <style>
+    @media only screen and (max-width: 480px) {
+      .email-wrap { padding: 16px 0 !important; }
+      .email-body { padding: 20px 16px !important; }
+      .email-header { padding: 28px 20px 0 !important; }
+      .stat-cell { display: block !important; width: 100% !important; border-right: none !important; border-bottom: 1px solid #e0d8ce !important; }
+      .stat-cell:last-child { border-bottom: none !important; }
+      .support-left { display: block !important; width: 100% !important; padding-right: 0 !important; border-right: none !important; border-bottom: 1px solid #e0d8ce !important; padding-bottom: 14px !important; margin-bottom: 14px !important; }
+      .support-right { display: block !important; width: 100% !important; padding-left: 0 !important; }
+      .cta-btn { padding: 14px 28px !important; font-size: 14px !important; }
+      h1 { font-size: 22px !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;background:#ede8e0;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#ede8e0;padding:32px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" class="email-wrap" style="background:#ede8e0;padding:32px 0;">
   <tr><td align="center">
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:4px;overflow:hidden;">
 
     <!-- HEADER TESTUALE -->
     <tr>
-      <td style="padding:40px 40px 0;text-align:center;">
+      <td class="email-header" style="padding:40px 40px 0;text-align:center;">
         <!-- goccia -->
         <div style="width:16px;height:20px;background:#3d1e08;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;margin:0 auto 14px;"></div>
         <!-- wordmark -->
@@ -180,7 +193,7 @@ function buildEmail(ordine, stato) {
 
     <!-- BADGE + TITOLO + INTRO -->
     <tr>
-      <td style="padding:26px 40px 22px;text-align:center;">
+      <td class="email-body" style="padding:26px 40px 22px;text-align:center;">
         <div style="display:inline-block;background:#3d1e08;color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;padding:8px 24px;border-radius:50px;font-family:Arial,sans-serif;margin-bottom:22px;">${c.badge}</div>
         <h1 style="margin:0 0 18px;font-size:26px;color:#2a1206;font-family:Georgia,serif;font-weight:normal;line-height:1.35;">${c.titolo}</h1>
         <p style="margin:0;font-size:14px;color:#5a4030;line-height:1.75;font-family:Arial,sans-serif;">${c.intro}</p>
@@ -194,15 +207,15 @@ function buildEmail(ordine, stato) {
       <td style="padding:0 28px 22px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0d8ce;border-radius:8px;overflow:hidden;">
           <tr>
-            <td style="padding:16px 14px;text-align:center;border-right:1px solid #e0d8ce;width:33%;">
+            <td class="stat-cell" style="padding:16px 14px;text-align:center;border-right:1px solid #e0d8ce;width:33%;">
               <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:#3d1e08;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;">${c.lProd}</p>
               <p style="margin:0;font-size:20px;color:#2a1206;font-family:Georgia,serif;">${nProdotti} <span style="font-size:12px;color:#5a4030;">${lang === 'fr' ? 'articles' : 'articoli'}</span></p>
             </td>
-            <td style="padding:16px 14px;text-align:center;border-right:1px solid #e0d8ce;width:33%;">
+            <td class="stat-cell" style="padding:16px 14px;text-align:center;border-right:1px solid #e0d8ce;width:33%;">
               <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:#3d1e08;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;">${c.lPortale}</p>
               <p style="margin:0;font-size:13px;color:#2a1206;font-family:Georgia,serif;">${portaleVal}</p>
             </td>
-            <td style="padding:16px 14px;text-align:center;width:33%;">
+            <td class="stat-cell" style="padding:16px 14px;text-align:center;width:33%;">
               <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:#3d1e08;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;">${c.lCorriere}</p>
               <p style="margin:0;font-size:12px;color:#7a5a40;font-family:Georgia,serif;font-style:italic;line-height:1.4;">${corriereVal}</p>
             </td>
@@ -273,11 +286,11 @@ function buildEmail(ordine, stato) {
       <td style="padding:20px 28px 22px;">
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td style="width:50%;vertical-align:top;padding-right:16px;border-right:1px solid #e0d8ce;">
+            <td class="support-left" style="width:50%;vertical-align:top;padding-right:16px;border-right:1px solid #e0d8ce;">
               <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#2a1206;font-family:Arial,sans-serif;">${c.lServ}</p>
               <p style="margin:0;font-size:12px;color:#8a6a50;font-family:Arial,sans-serif;line-height:1.6;">${c.txtServ}</p>
             </td>
-            <td style="width:50%;vertical-align:top;padding-left:16px;">
+            <td class="support-right" style="width:50%;vertical-align:top;padding-left:16px;">
               <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#2a1206;font-family:Arial,sans-serif;">${c.lCont}</p>
               <p style="margin:0 0 3px;font-size:12px;font-family:Arial,sans-serif;">
                 <a href="mailto:docciastoreweb@gmail.com" style="color:#3d1e08;text-decoration:none;font-weight:600;">docciastoreweb@gmail.com</a>
