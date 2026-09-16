@@ -266,13 +266,13 @@ export default function AdminDashboard() {
         <span className="text-xs text-gray-400 self-center">{ordiniFiltrati.length} ordini</span>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2 flex-wrap">
+      <div className="mb-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
           {['tutti', 'nuovo', 'in_elaborazione', 'pronto_oggi', 'bollettato', 'spedito', 'sospeso'].map(s => (
             <button
               key={s}
               onClick={() => setFiltroStato(s)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                 filtroStato === s
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
@@ -401,35 +401,35 @@ function OrdineCard({ ordine, onSegnaSpedito, onRiportaProntoOggi, onCambiaStato
         </div>
       )}
       <div
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+        className="flex items-start justify-between p-3 sm:p-4 cursor-pointer hover:bg-gray-50 gap-2"
         onClick={() => setAperto(!aperto)}
       >
-        <div className="flex items-center gap-4">
-          <span className="text-gray-400 font-mono text-sm">#{ordine.numero_ordine}</span>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="font-semibold text-gray-800">{ordine.nome_cliente} {ordine.cognome_cliente}</p>
+        <div className="flex items-start gap-2 sm:gap-4 min-w-0">
+          <span className="text-gray-400 font-mono text-sm mt-0.5 shrink-0">#{ordine.numero_ordine}</span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <p className="font-semibold text-gray-800 text-sm sm:text-base">{ordine.nome_cliente} {ordine.cognome_cliente}</p>
               {ordine.portale && (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                   {ordine.portale}
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-500 truncate max-w-xs">{ordine.materiale}</p>
+            <p className="text-xs sm:text-sm text-gray-500 truncate max-w-[160px] sm:max-w-xs">{ordine.materiale}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end shrink-0">
           {mancanti.length > 0 && (
-            <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-100 text-red-700 border border-red-200">
-              ⚠ {mancanti.map(m => DOC_LABELS[m]).join(', ')} mancante{mancanti.length > 1 ? '' : ''}
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 hidden sm:inline">
+              ⚠ {mancanti.map(m => DOC_LABELS[m]).join(', ')}
             </span>
           )}
-          <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${stato.color}`}>
+          {mancanti.length > 0 && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 sm:hidden">⚠</span>
+          )}
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${stato.color}`}>
             {labelStato(ordine)}
           </span>
-          {ordine.data_spedizione && (
-            <span className="text-xs text-gray-500">🚚 {fmtData(ordine.data_spedizione)}</span>
-          )}
           <span className="text-gray-400 text-sm">{aperto ? '▲' : '▼'}</span>
         </div>
       </div>

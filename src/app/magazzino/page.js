@@ -87,7 +87,7 @@ export default function MagazzinoPage() {
         </div>
       )}
       {/* Contatori / Tab */}
-      <div className="grid grid-cols-5 gap-2 mb-6">
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-6">
         <StatCard
           label="Nuovi"
           valore={ordiniNuovi.length}
@@ -207,9 +207,9 @@ function StatCard({ label, valore, color, attivo, onClick }) {
     gray: attivo ? 'bg-gray-500 border-gray-500 text-white shadow-md' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100',
   }
   return (
-    <button onClick={onClick} className={`rounded-xl border p-3 text-center w-full transition-all cursor-pointer ${colors[color]}`}>
-      <p className="text-2xl font-bold">{valore}</p>
-      <p className="text-xs mt-1 font-medium">{label}</p>
+    <button onClick={onClick} className={`rounded-xl border p-2 sm:p-3 text-center w-full transition-all cursor-pointer ${colors[color]}`}>
+      <p className="text-xl sm:text-2xl font-bold">{valore}</p>
+      <p className="text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-medium leading-tight">{label}</p>
     </button>
   )
 }
@@ -248,7 +248,7 @@ function OrdineCardIvan({ ordine, onAggiornaStato, sezioneAttiva }) {
         </div>
       )}
       {/* Header card */}
-      <div className={`px-5 py-3 flex items-center justify-between ${headerBg}`}>
+      <div className={`px-3 sm:px-5 py-3 flex items-center justify-between ${headerBg}`}>
         <div className="flex items-center gap-3">
           <span className="font-mono text-gray-400 text-sm">#{ordine.numero_ordine}</span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${BADGE[ordine.stato]}`}>
@@ -259,7 +259,7 @@ function OrdineCardIvan({ ordine, onAggiornaStato, sezioneAttiva }) {
       </div>
 
       {/* Body */}
-      <div className="px-5 py-4 space-y-3">
+      <div className="px-3 sm:px-5 py-4 space-y-3">
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">Cliente</p>
           <p className="font-semibold text-gray-800 text-lg">{ordine.nome_cliente} {ordine.cognome_cliente}</p>
