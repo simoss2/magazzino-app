@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient, createSupabaseServerClient } from '@/lib/supabase-server'
-import { inviaNotificaPronto, inviaNotificaDocumento, eliminaMessaggio } from '@/lib/telegram'
+import { inviaNotificaPronto, inviaNotificaDocumentiPronti, eliminaMessaggio } from '@/lib/telegram'
 import { inviaEmailStato } from '@/lib/email'
 
 // PATCH /api/ordini/[id] — aggiorna stato o documenti
@@ -74,19 +74,18 @@ export async function PATCH(request, { params }) {
 
       if (error) throw error
 
-      // Notifica Ivan solo se il documento era assente prima
-      const notifiche = []
-      if (bolla_url && !ordineAttuale?.bolla_url) notifiche.push('bolla')
-      if (distinta_url && !ordineAttuale?.distinta_url) notifiche.push('distinta')
-      if (dettagli_url && !ordineAttuale?.dettagli_url) notifiche.push('dettagli')
+      // Notifica Ivan solo quando bolla E distinta sono entrambe presenti (una sola notifica)
+      const bollaOra = bolla_url || ordineAttuale?.bolla_url
+      const distintoOra = distinta_url || ordineAttuale?.distinta_url
+      const bollaEraGiaPrima = !!ordineAttuale?.bolla_url
+      const distintoEraGiaPrima = !!ordineAttuale?.distinta_url
+      const haAppenaCompletato = bollaOra && distintoOra && !(bollaEraGiaPrima && distintoEraGiaPrima)
 
-      if (notifiche.length > 0) {
+      if (haAppenaCompletato) {
         try {
           const { data: imp } = await supabase.from('impostazioni').select('valore').eq('chiave', 'notifiche_telegram_ivan').single()
           if (imp?.valore !== 'false') {
-            for (const tipoDoc of notifiche) {
-              await inviaNotificaDocumento({ ordine, tipoDoc })
-            }
+            await inviaNotificaDocumentiPronti({ ordine })
           }
         } catch (tgErr) {
           console.error('Errore notifica Telegram documento:', tgErr)

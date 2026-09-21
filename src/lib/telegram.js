@@ -41,12 +41,10 @@ export async function inviaNotificaNuovoOrdine({ ordine }) {
   return messageId
 }
 
-// Notifica a Ivan: documento disponibile
-export async function inviaNotificaDocumento({ ordine, tipoDoc }) {
+// Notifica a Ivan: documenti pronti per la spedizione (bolla + distinta entrambi presenti)
+export async function inviaNotificaDocumentiPronti({ ordine }) {
   const { numero_ordine, nome_cliente, cognome_cliente } = ordine
-  const nomeDoc = tipoDoc === 'bolla' ? 'Bolla di spedizione' : tipoDoc === 'distinta' ? 'Distinta' : 'Dettagli ordine'
-  const emoji = tipoDoc === 'bolla' ? '📄' : tipoDoc === 'distinta' ? '📋' : '📝'
-  const testo = `${emoji} <b>${nomeDoc} disponibile</b>\n\nOrdine <b>#${numero_ordine}</b> — ${nome_cliente} ${cognome_cliente}\n\nAccedi all'app per aprire e stampare il documento.`
+  const testo = `📄📋 <b>Documenti pronti per la spedizione</b>\n\nOrdine <b>#${numero_ordine}</b> — ${nome_cliente} ${cognome_cliente}\n\nBolla e distinta sono disponibili. Accedi all'app per aprire e stampare i documenti.`
   await sendMessage(CHAT_MAGAZZINO, testo)
 }
 
